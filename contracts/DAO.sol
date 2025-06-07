@@ -147,23 +147,51 @@ contract DAO {
 
     mapping(uint256 => mapping(address => bool)) public hasVoted;
 
+    function sqrt(uint256 x) public pure returns (uint256) {
+        if (x == 0) return 0;
+        uint256 z = (x + 1) / 2;
+        uint256 y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
+        return y;
+    }
+
     function voteProposal(uint256 proposalId, bool inFavor) external daoActive {
         require(proposalId < proposals.length, "Invalid proposal");
         require(!hasVoted[proposalId][msg.sender], "Already voted");
 
-        StakeInfo memory stake = voteStakes[msg.sender];
-        require(stake.amount >= stakingToVote, "Not enough stake to vote");
+        uint256 totalPower = 0;
 
-        uint256 power = stake.amount / votePowerDivider;
+        // Voto propio
+        if (voteStakes[msg.sender].amount >= stakingToVote) {
+            totalPower += sqrt(voteStakes[msg.sender].amount);
+        }
 
-         if (inFavor) {
-            proposals[proposalId].votesFor += power;
+        //Votos delegados (para esta propuesta)
+        for (uint i = 0; i < delegatorsPerProposal[proposalId].length; i++) {
+            address delegator = delegatorsPerProposal[proposalId][i];
+
+            if (delegatedVote[proposalId][delegator] == msg.sender) {
+
+                if (voteStakes[delegator].amount >= stakingToVote) {
+                    totalPower += sqrt(voteStakes[delegator].amount);
+                }
+            }
+        }
+
+        require(totalPower > 0, "No voting power");
+
+        if (inFavor) {
+            proposals[proposalId].votesFor += totalPower;
         } else {
-            proposals[proposalId].votesAgainst += power;
+            proposals[proposalId].votesAgainst += totalPower;
         }
 
         hasVoted[proposalId][msg.sender] = true;
     }
+
 
     function executeProposal(uint256 proposalId) external daoActive {
         require(proposalId < proposals.length, "Invalid proposal");
@@ -208,6 +236,21 @@ contract DAO {
 
         return power / votePowerDivider;
     }
+
+    // Delegación específica por propuesta
+    mapping(uint256 => mapping(address => address)) public delegatedVote;
+    mapping(uint256 => address[]) public delegatorsPerProposal;
+
+
+    function delegateVoteForProposal(uint256 proposalId, address to) external daoActive {
+        require(proposalId < proposals.length, "Invalid proposal");
+        require(to != msg.sender, "Cannot delegate to self");
+        require(delegatedVote[proposalId][msg.sender] == address(0), "Already delegated");
+
+        delegatedVote[proposalId][msg.sender] = to;
+        delegatorsPerProposal[proposalId].push(msg.sender); 
+    }
+
 
 
 }

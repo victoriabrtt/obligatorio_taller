@@ -11,7 +11,7 @@ describe("DAO - Delegación de votos", function () {
     await token.mint(userB.address, 1000);
 
     const DAO = await ethers.getContractFactory("DAO");
-    const dao = await DAO.deploy(token.target);
+    const dao = await DAO.deploy(await token.getAddress());
 
     await dao.setOwner(owner.address);
     await dao.setPanicWallet(owner.address);
@@ -26,11 +26,14 @@ describe("DAO - Delegación de votos", function () {
     await dao.tranquility();
 
     // A aprueba y hace stake
-    await token.connect(userA).approve(dao.target, 1000);
+    await token.mint(userA.address, 1000);
+    await token.connect(userA).approve(await dao.getAddress(), 1000);
     await dao.connect(userA).stakeForVote(300);
 
+
     // B aprueba y hace stake
-    await token.connect(userB).approve(dao.target, 1000);
+    await token.mint(userB.address, 1000);
+    await token.connect(userB).approve(await dao.getAddress(), 1000);
     await dao.connect(userB).stakeForVote(100);
 
     return { dao, token, owner, userA, userB };

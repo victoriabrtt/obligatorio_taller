@@ -29,8 +29,8 @@ describe("DAO - Propuestas", function () {
     );
 
     // Usuario recibe tokens y hace approve
-    await token.mint(user.address, 1000);
-    await token.connect(user).approve(await dao.getAddress(), 1000);
+    await token.mint(user.address, 20000);
+    await token.connect(user).approve(await dao.getAddress(), 20000);
   });
 
   it("debe crear una propuesta si hizo staking previamente", async function () {
@@ -49,4 +49,22 @@ describe("DAO - Propuestas", function () {
       dao.connect(user).createProposal("No hice stake pero quiero proponer")
     ).to.be.revertedWith("Not enough stake to propose");
   });
+
+  it("debería aplicar voto cuadrático correctamente", async function () {
+    await dao.connect(user).stakeForVote(10000); 
+    await dao.connect(user).stakeForProposal(250);
+  
+    const tx = await dao.connect(user).createProposal("Propuesta cuadrática");
+    const receipt = await tx.wait();
+    const proposalId = receipt.logs[0].args.proposalId;
+  
+    const power = await dao.sqrt(10000);
+  
+    await dao.connect(user).voteProposal(proposalId, true);
+  
+    const proposal = await dao.proposals(proposalId);
+    expect(proposal.votesFor).to.equal(power);
+  });  
+  
+
 });

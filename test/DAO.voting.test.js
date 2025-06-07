@@ -1,5 +1,33 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+
+async function deployDAOFixture() {
+    const [owner, proposer, voter, userExtra] = await ethers.getSigners();
+  
+    const Token = await ethers.getContractFactory("MyToken");
+    const token = await Token.deploy();
+    await token.waitForDeployment();
+  
+    const DAO = await ethers.getContractFactory("DAO");
+    const dao = await DAO.deploy(await token.getAddress());
+  
+    await dao.setOwner(owner.address);
+    await dao.setPanicWallet(owner.address);
+    await dao.tranquility();
+  
+    await dao.initParameters(
+      ethers.parseUnits("100", 18), 
+      ethers.parseUnits("200", 18), 
+      0,                            
+      1,                            
+      1,                            
+      ethers.parseUnits("0.01", 18) 
+    );
+  
+    return { dao, token, owner, proposer, voter, userExtra };
+  }
+  
 
 describe("DAO - Votación y Ejecución de Propuestas", function () {
   let dao, token, owner, proposer, voter;
@@ -49,9 +77,13 @@ describe("DAO - Votación y Ejecución de Propuestas", function () {
   it("debería permitir votar una propuesta a favor", async function () {
     await dao.connect(voter).voteProposal(0, true);
     const propuesta = await dao.proposals(0);
-    expect(propuesta.votesFor).to.equal(ethers.parseUnits("100", 18));
+  
+    const staked = BigInt(ethers.parseUnits("100", 18).toString());
+    const expectedPower = sqrt(staked);
+  
+    expect(propuesta.votesFor).to.equal(expectedPower);
   });
-
+  
   it("debería impedir votar dos veces", async function () {
     await dao.connect(voter).voteProposal(0, true);
     await expect(dao.connect(voter).voteProposal(0, true)).to.be.revertedWith("Already voted");
@@ -93,4 +125,49 @@ describe("DAO - Votación y Ejecución de Propuestas", function () {
     await dao.executeProposal(0);
     await expect(dao.executeProposal(0)).to.be.revertedWith("Already executed");
   });
+
+  it("debería permitir delegar el voto solo para una propuesta", async function () {
+    const { dao, token, owner, proposer, voter } = await loadFixture(deployDAOFixture);
+  
+    await token.connect(owner).mint(proposer.address, ethers.parseUnits("300", 18));
+    await token.connect(owner).mint(voter.address, ethers.parseUnits("100", 18));
+    await token.connect(proposer).approve(await dao.getAddress(), ethers.MaxUint256);
+    await token.connect(voter).approve(await dao.getAddress(), ethers.MaxUint256);
+  
+    await dao.connect(proposer).stakeForProposal(ethers.parseUnits("200", 18));
+    await dao.connect(voter).stakeForVote(ethers.parseUnits("100", 18));
+    await dao.connect(proposer).createProposal("Test Proposal");
+  
+    // Un nuevo votante sin stake
+    const [_, __, ___, delegator, delegatee] = await ethers.getSigners();
+    await token.connect(owner).mint(delegator.address, ethers.parseUnits("100", 18));
+    await token.connect(delegator).approve(await dao.getAddress(), ethers.MaxUint256);
+    await dao.connect(delegator).stakeForVote(ethers.parseUnits("100", 18));
+  
+    // Delegador delega su voto a voter para esta propuesta
+    await dao.connect(delegator).delegateVoteForProposal(0, voter.address);
+  
+    // Voter ahora tiene su poder + el del delegador
+    await dao.connect(voter).voteProposal(0, true);
+    const prop = await dao.proposals(0);
+    const sqrt = (n) => {
+        return BigInt(Math.floor(Math.sqrt(Number(n))));
+    };
+      
+      const expected = sqrt(ethers.parseUnits("100", 18)) + sqrt(ethers.parseUnits("100", 18));
+      expect(prop.votesFor).to.equal(expected);      
+  });  
+
+  // funcion de sqrt
+  function sqrt(value) {
+    if (value === 0n) return 0n;
+    let z = (value + 1n) / 2n;
+    let y = value;
+    while (z < y) {
+      y = z;
+      z = (value / z + z) / 2n;
+    }
+    return y;
+  }
+  
 });
