@@ -114,4 +114,72 @@ contract DAO {
         delete proposalStakes[msg.sender];
         token.transfer(msg.sender, stake.amount);
     }
+
+    struct Proposal {
+        address proposer;
+        string description;
+        uint256 createdAt;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        bool executed;
+    }   
+
+    Proposal[] public proposals;
+
+    event ProposalCreated(uint256 indexed proposalId, address indexed proposer, string description);
+
+    function createProposal(string memory description) external daoActive {
+        StakeInfo memory stake = proposalStakes[msg.sender];
+        require(stake.amount >= stakingToPropose, "Not enough stake to propose");
+
+        Proposal memory newProposal = Proposal({
+            proposer: msg.sender,
+            description: description,
+            createdAt: block.timestamp,
+            votesFor: 0,
+            votesAgainst: 0,
+            executed: false
+        });
+
+        proposals.push(newProposal);
+        emit ProposalCreated(proposals.length - 1, msg.sender, description);
+    }
+
+    mapping(uint256 => mapping(address => bool)) public hasVoted;
+
+    function voteProposal(uint256 proposalId, bool inFavor) external daoActive {
+        require(proposalId < proposals.length, "Invalid proposal");
+        require(!hasVoted[proposalId][msg.sender], "Already voted");
+
+        StakeInfo memory stake = voteStakes[msg.sender];
+        require(stake.amount >= stakingToVote, "Not enough stake to vote");
+
+        uint256 power = stake.amount / votePowerDivider;
+
+         if (inFavor) {
+            proposals[proposalId].votesFor += power;
+        } else {
+            proposals[proposalId].votesAgainst += power;
+        }
+
+        hasVoted[proposalId][msg.sender] = true;
+    }
+
+    function executeProposal(uint256 proposalId) external daoActive {
+        require(proposalId < proposals.length, "Invalid proposal");
+
+        Proposal storage proposal = proposals[proposalId];
+
+        require(!proposal.executed, "Already executed");
+
+        uint256 endTime = proposal.createdAt + (proposalDurationDays * 1 days);
+        require(block.timestamp >= endTime, "Proposal still active");
+
+        require(proposal.votesFor > proposal.votesAgainst, "Proposal not approved");
+
+        proposal.executed = true;
+
+    }
+
+
 }

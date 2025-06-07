@@ -80,4 +80,44 @@ describe("DAO - Staking", function () {
     const stake = await dao.proposalStakes(user.address);
     expect(stake.amount).to.equal(0);
   });
+
+  it("debe fallar al deshacer stake si no tiene tokens", async function () {
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("No tokens staked");
+  });
+
+  it("debe fallar si intenta deshacer stake antes del tiempo", async function () {
+    await dao.connect(user).stakeForVote(150);
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Staking time not met");
+  });
+  
+  it("debe fallar si intenta unstake sin haber staked", async function () {
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("No tokens staked");
+  });
+
+  it("no permite hacer stake dos veces", async function () {
+    await dao.connect(user).stakeForVote(150);
+    await expect(dao.connect(user).stakeForVote(150)).to.be.revertedWith("Already staked");
+  });
+  
+  it("debe fallar si intenta unstake antes de que se cumpla el tiempo mínimo", async function () {
+    await dao.connect(user).stakeForVote(150);
+  
+    // No avanza el tiempo, intenta directamente
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Staking time not met");
+  });
+
+  it("debe fallar si intenta stake para propuesta dos veces sin unstake", async function () {
+    await dao.connect(user).stakeForProposal(250);
+  
+    await expect(
+      dao.connect(user).stakeForProposal(250)
+    ).to.be.revertedWith("Already staked");
+  });
+
+  it("debe fallar si intenta unstake sin haber hecho stake", async function () {
+    await expect(
+      dao.connect(user).unstakeVote()
+    ).to.be.revertedWith("No tokens staked");
+  });  
+  
 });
