@@ -181,5 +181,33 @@ contract DAO {
 
     }
 
+    // Delegation voting
+    mapping(address => address) public delegates;
+    address[] public delegators;
+    address[] public allDelegators;
+
+    function delegate(address to) external daoActive {
+        require(to != msg.sender, "Cannot delegate to self");
+
+        if (delegates[msg.sender] == address(0)) {
+            allDelegators.push(msg.sender);
+        }
+
+        delegates[msg.sender] = to;
+    }
+
+    function getVotingPower(address user) public view returns (uint256) {
+        uint256 power = voteStakes[user].amount;
+
+        for (uint i = 0; i < allDelegators.length; i++) {
+            address delegator = allDelegators[i];
+            if (delegates[delegator] == user) {
+                power += voteStakes[delegator].amount;
+            }
+        }
+
+        return power / votePowerDivider;
+    }
+
 
 }

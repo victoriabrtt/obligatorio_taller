@@ -19,7 +19,7 @@
   "homepage": "https://github.com/victoriabrtt/obligatorio_taller#readme",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.24.0",
+    "hardhat": "^2.24.2",
     "hardhat-coverage": "^0.9.19"
   },
   "dependencies": {
