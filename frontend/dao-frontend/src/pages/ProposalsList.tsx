@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Flex, Heading, Stack, Text, Badge } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 import { useDAO } from '../context/DAOContext';
 
 // Tipos de estado de propuestas
@@ -14,6 +15,7 @@ enum ProposalType {
 }
 
 const ProposalsList: React.FC = () => {
+  const navigate = useNavigate();
   const { proposals, refreshData } = useDAO();
   const [filterStatus, setFilterStatus] = useState<ProposalStatus | 'ALL'>('ALL');
   
@@ -134,7 +136,7 @@ const ProposalsList: React.FC = () => {
                   size="sm" 
                   colorScheme="blue" 
                   mr={2}
-                  onClick={() => {/* Ver detalles - implementar */}}
+                  onClick={() => navigate(`/proposals/${proposal.id}`)}
                 >
                   Ver Detalles
                 </Button>

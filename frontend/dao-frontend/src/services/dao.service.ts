@@ -155,38 +155,47 @@ export class DAOService {
   // --- Funciones relacionadas con Propuestas ---
 
   // Crear una propuesta simple
-  async createProposal(description: string): Promise<ethers.TransactionResponse> {
+  async createProposal(title: string, description: string): Promise<ethers.TransactionResponse> {
     this.ensureConnected();
-    return await this.daoContract!.createProposal(description);
+    // Combinamos título y descripción ya que el contrato solo acepta un campo de descripción
+    const fullDescription = `${title}\n\n${description}`;
+    return await this.daoContract!.createProposal(fullDescription);
   }
 
   // Crear una propuesta de transacción
   async createTransactionProposal(
+    title: string,
     description: string,
-    target: string,
-    data: string,
+    target: string, 
     value: string
   ): Promise<ethers.TransactionResponse> {
     this.ensureConnected();
+    // Combinamos título y descripción
+    const fullDescription = `${title}\n\n${description}`;
     const valueWei = ethers.parseUnits(value, 18);
+    
+    // El contrato espera la dirección destino, el valor en wei, y una descripción
     return await this.daoContract!.createTransactionProposal(
-      description,
-      target,
-      data,
+      fullDescription,
+      target, 
       valueWei
     );
   }
 
   // Crear una propuesta para cambiar un parámetro
   async createParameterChangeProposal(
+    title: string,
     description: string,
     paramName: string,
     paramValue: string
   ): Promise<ethers.TransactionResponse> {
     this.ensureConnected();
-    const valueWei = ethers.parseUnits(paramValue, 18);
+    // Combinamos título y descripción
+    const fullDescription = `${title}\n\n${description}`;
+    const valueWei = ethers.parseUnits(paramValue, 0); // No todos los parámetros usan 18 decimales
+    
     return await this.daoContract!.createParameterChangeProposal(
-      description,
+      fullDescription,
       paramName,
       valueWei
     );
@@ -194,6 +203,7 @@ export class DAOService {
 
   // Crear una propuesta para mintear tokens
   async createTokenMintProposal(
+    title: string,
     description: string,
     to: string,
     amount: string
@@ -279,6 +289,50 @@ export class DAOService {
   async delegateForProposal(proposalId: number, to: string): Promise<ethers.TransactionResponse> {
     this.ensureConnected();
     return await this.daoContract!.delegateVoteForProposal(proposalId, to);
+  }
+
+  // --- Funciones relacionadas con Delegación ---
+
+  // Obtiene la dirección a la que el usuario ha delegado sus votos
+  async getCurrentDelegate(): Promise<string> {
+    this.ensureConnected();
+    return await this.daoContract!.delegates(this.address);
+  }
+
+  // --- Funciones para obtener parámetros del DAO ---
+  
+  // Obtener el mínimo de tokens para votar
+  async getStakingToVote(): Promise<string> {
+    this.ensureConnected();
+    const amount = await this.daoContract!.stakingToVote();
+    return ethers.formatUnits(amount, 18);
+  }
+  
+  // Obtener el mínimo de tokens para proponer
+  async getStakingToPropose(): Promise<string> {
+    this.ensureConnected();
+    const amount = await this.daoContract!.stakingToPropose();
+    return ethers.formatUnits(amount, 18);
+  }
+  
+  // Obtener el tiempo mínimo de staking
+  async getMinStakingTime(): Promise<string> {
+    this.ensureConnected();
+    const time = await this.daoContract!.minStakingTime();
+    return time.toString();
+  }
+  
+  // Obtener la duración en días de las propuestas
+  async getProposalDurationDays(): Promise<string> {
+    this.ensureConnected();
+    const days = await this.daoContract!.proposalDurationDays();
+    return days.toString();
+  }
+  
+  // Obtener si el DAO está pausado
+  async getIsPaused(): Promise<boolean> {
+    this.ensureConnected();
+    return await this.daoContract!.isPaused();
   }
 
   // --- Funciones auxiliares ---
