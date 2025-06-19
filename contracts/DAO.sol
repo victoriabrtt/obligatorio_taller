@@ -462,7 +462,27 @@ contract DAO {
             }
         }
 
-        return power / votePowerDivider;
+        // Implementación del voto cuadrático: Poder de voto = sqrt(tokens)
+        return sqrt(power) * 1e9 / votePowerDivider;
+    }
+    
+    /**
+     * @dev Calcula la raíz cuadrada de un número usando el método de Newton-Raphson
+     * @param x Número del que calcular la raíz cuadrada
+     * @return y Raíz cuadrada de x
+     */
+    function sqrt(uint256 x) internal pure returns (uint256) {
+        if (x == 0) return 0;
+        
+        uint256 z = (x + 1) / 2;
+        uint256 y = x;
+        
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
+        
+        return y;
     }
 
     // Delegación específica por propuesta
