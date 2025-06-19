@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "hardhat test",
-    "coverage": "hardhat coverage"
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy_dao.js"
   },
   "repository": {
     "type": "git",

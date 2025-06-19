@@ -2,12 +2,21 @@
 pragma solidity ^0.8.20;
 
 import "./MyToken.sol";
+import "./Multisig.sol";
+import "./MultisigFactory.sol";
 
+/**
+ * @title DAO
+ * @dev Contrato principal de la Organización Autónoma Descentralizada (DAO)
+ * Implementa staking, propuestas, votación cuadrática y delegación
+ */
 contract DAO {
     MyToken public token;
-
+    
+    // Contratos multisig para administración y emergencias
     address public ownerMultisig;
     address public panicMultisig;
+    MultisigFactory public multisigFactory;
 
     bool public isPaused = true;
 
@@ -42,15 +51,46 @@ contract DAO {
         _;
     }
 
+    /**
+     * @dev Constructor que establece el token y crea la factory para multisig
+     * @param _tokenAddress Dirección del contrato de token
+     */
     constructor(address _tokenAddress) {
         token = MyToken(_tokenAddress);
+        multisigFactory = new MultisigFactory();
     }
 
+    /**
+     * @dev Crea un multisig para operaciones de propietario
+     * @param owners Array de direcciones que serán propietarios del multisig
+     * @param requiredApprovals Número de aprobaciones necesarias
+     */
+    function setOwnerMultisig(address[] memory owners, uint requiredApprovals) external {
+        require(ownerMultisig == address(0), "Owner multisig already set");
+        ownerMultisig = multisigFactory.createMultisig(owners, requiredApprovals);
+    }
+
+    /**
+     * @dev Crea un multisig para operaciones de emergencia (panic button)
+     * @param owners Array de direcciones que serán propietarios del multisig
+     * @param requiredApprovals Número de aprobaciones necesarias
+     */
+    function setPanicMultisig(address[] memory owners, uint requiredApprovals) external onlyOwner {
+        require(panicMultisig == address(0), "Panic multisig already set");
+        panicMultisig = multisigFactory.createMultisig(owners, requiredApprovals);
+    }
+
+    /**
+     * @dev Método legacy para compatibilidad
+     */
     function setOwner(address _owner) external {
         require(ownerMultisig == address(0), "Already set");
         ownerMultisig = _owner;
     }
 
+    /**
+     * @dev Método legacy para compatibilidad
+     */
     function setPanicWallet(address _panicWallet) external onlyOwner {
         require(_panicWallet != address(0), "Invalid address");
         panicMultisig = _panicWallet;
@@ -115,6 +155,13 @@ contract DAO {
         token.transfer(msg.sender, stake.amount);
     }
 
+    enum ProposalType { 
+        Simple,       // Solo aprobación sin ejecución de código
+        Transaction,  // Ejecuta una transacción
+        ParameterChange, // Cambia parámetros del DAO
+        TokenMint     // Mintea nuevos tokens
+    }
+
     struct Proposal {
         address proposer;
         string description;
@@ -122,12 +169,28 @@ contract DAO {
         uint256 votesFor;
         uint256 votesAgainst;
         bool executed;
+        ProposalType proposalType;
+        // Para propuestas de tipo Transaction
+        address transactionTarget;
+        bytes transactionData;
+        uint transactionValue;
+        // Para propuestas de tipo ParameterChange
+        string paramName;
+        uint paramValue;
+        // Para propuestas de tipo TokenMint
+        address mintTo;
+        uint mintAmount;
     }   
 
     Proposal[] public proposals;
 
-    event ProposalCreated(uint256 indexed proposalId, address indexed proposer, string description);
+    event ProposalCreated(uint256 indexed proposalId, address indexed proposer, string description, ProposalType proposalType);
+    event ProposalExecuted(uint256 indexed proposalId, bool success);
 
+    /**
+     * @dev Crea una propuesta simple sin acciones específicas a ejecutar
+     * @param description Descripción de la propuesta
+     */
     function createProposal(string memory description) external daoActive {
         StakeInfo memory stake = proposalStakes[msg.sender];
         require(stake.amount >= stakingToPropose, "Not enough stake to propose");
@@ -138,11 +201,126 @@ contract DAO {
             createdAt: block.timestamp,
             votesFor: 0,
             votesAgainst: 0,
-            executed: false
+            executed: false,
+            proposalType: ProposalType.Simple,
+            transactionTarget: address(0),
+            transactionData: "",
+            transactionValue: 0,
+            paramName: "",
+            paramValue: 0,
+            mintTo: address(0),
+            mintAmount: 0
         });
 
         proposals.push(newProposal);
-        emit ProposalCreated(proposals.length - 1, msg.sender, description);
+        emit ProposalCreated(proposals.length - 1, msg.sender, description, ProposalType.Simple);
+    }
+    
+    /**
+     * @dev Crea una propuesta para ejecutar una transacción arbitraria
+     * @param description Descripción de la propuesta
+     * @param target Contrato objetivo de la transacción
+     * @param data Datos de la llamada codificados
+     * @param value Cantidad de ETH a enviar en la transacción
+     */
+    function createTransactionProposal(
+        string memory description,
+        address target,
+        bytes memory data,
+        uint value
+    ) external daoActive {
+        StakeInfo memory stake = proposalStakes[msg.sender];
+        require(stake.amount >= stakingToPropose, "Not enough stake to propose");
+
+        Proposal memory newProposal = Proposal({
+            proposer: msg.sender,
+            description: description,
+            createdAt: block.timestamp,
+            votesFor: 0,
+            votesAgainst: 0,
+            executed: false,
+            proposalType: ProposalType.Transaction,
+            transactionTarget: target,
+            transactionData: data,
+            transactionValue: value,
+            paramName: "",
+            paramValue: 0,
+            mintTo: address(0),
+            mintAmount: 0
+        });
+
+        proposals.push(newProposal);
+        emit ProposalCreated(proposals.length - 1, msg.sender, description, ProposalType.Transaction);
+    }
+    
+    /**
+     * @dev Crea una propuesta para cambiar parámetros del DAO
+     * @param description Descripción de la propuesta
+     * @param paramName Nombre del parámetro a cambiar
+     * @param paramValue Nuevo valor para el parámetro
+     */
+    function createParameterChangeProposal(
+        string memory description,
+        string memory paramName,
+        uint paramValue
+    ) external daoActive {
+        StakeInfo memory stake = proposalStakes[msg.sender];
+        require(stake.amount >= stakingToPropose, "Not enough stake to propose");
+
+        Proposal memory newProposal = Proposal({
+            proposer: msg.sender,
+            description: description,
+            createdAt: block.timestamp,
+            votesFor: 0,
+            votesAgainst: 0,
+            executed: false,
+            proposalType: ProposalType.ParameterChange,
+            transactionTarget: address(0),
+            transactionData: "",
+            transactionValue: 0,
+            paramName: paramName,
+            paramValue: paramValue,
+            mintTo: address(0),
+            mintAmount: 0
+        });
+
+        proposals.push(newProposal);
+        emit ProposalCreated(proposals.length - 1, msg.sender, description, ProposalType.ParameterChange);
+    }
+    
+    /**
+     * @dev Crea una propuesta para mintear nuevos tokens
+     * @param description Descripción de la propuesta
+     * @param to Dirección que recibirá los tokens
+     * @param amount Cantidad de tokens a mintear
+     */
+    function createTokenMintProposal(
+        string memory description,
+        address to,
+        uint amount
+    ) external daoActive {
+        StakeInfo memory stake = proposalStakes[msg.sender];
+        require(stake.amount >= stakingToPropose, "Not enough stake to propose");
+
+        Proposal memory newProposal = Proposal({
+            proposer: msg.sender,
+            description: description,
+            createdAt: block.timestamp,
+            votesFor: 0,
+            votesAgainst: 0,
+            executed: false,
+            proposalType: ProposalType.TokenMint,
+            transactionTarget: address(0),
+            transactionData: "",
+            transactionValue: 0,
+            paramName: "",
+            paramValue: 0,
+            mintTo: to,
+            mintAmount: amount
+        });
+
+        proposals.push(newProposal);
+        emit ProposalCreated(proposals.length - 1, msg.sender, description, ProposalType.TokenMint);
     }
 
     mapping(uint256 => mapping(address => bool)) public hasVoted;
@@ -193,7 +371,12 @@ contract DAO {
     }
 
 
-    function executeProposal(uint256 proposalId) external daoActive {
+    /**
+     * @dev Ejecuta una propuesta aprobada
+     * @param proposalId ID de la propuesta a ejecutar
+     * @return success Indica si la ejecución fue exitosa
+     */
+    function executeProposal(uint256 proposalId) external daoActive returns (bool success) {
         require(proposalId < proposals.length, "Invalid proposal");
 
         Proposal storage proposal = proposals[proposalId];
@@ -206,7 +389,52 @@ contract DAO {
         require(proposal.votesFor > proposal.votesAgainst, "Proposal not approved");
 
         proposal.executed = true;
+        
+        // Ejecutar la acción correspondiente según el tipo de propuesta
+        if (proposal.proposalType == ProposalType.Transaction) {
+            // Ejecutar transacción arbitraria
+            (bool txSuccess, ) = proposal.transactionTarget.call{value: proposal.transactionValue}(proposal.transactionData);
+            success = txSuccess;
+        } 
+        else if (proposal.proposalType == ProposalType.ParameterChange) {
+            // Cambiar parámetros del DAO
+            if (keccak256(bytes(proposal.paramName)) == keccak256(bytes("stakingToVote"))) {
+                stakingToVote = proposal.paramValue;
+                success = true;
+            } else if (keccak256(bytes(proposal.paramName)) == keccak256(bytes("stakingToPropose"))) {
+                stakingToPropose = proposal.paramValue;
+                success = true;
+            } else if (keccak256(bytes(proposal.paramName)) == keccak256(bytes("minStakingTime"))) {
+                minStakingTime = proposal.paramValue;
+                success = true;
+            } else if (keccak256(bytes(proposal.paramName)) == keccak256(bytes("votePowerDivider"))) {
+                votePowerDivider = proposal.paramValue;
+                success = true;
+            } else if (keccak256(bytes(proposal.paramName)) == keccak256(bytes("proposalDurationDays"))) {
+                proposalDurationDays = proposal.paramValue;
+                success = true;
+            } else if (keccak256(bytes(proposal.paramName)) == keccak256(bytes("tokenPriceInWei"))) {
+                tokenPriceInWei = proposal.paramValue;
+                success = true;
+            } else {
+                success = false;
+            }
+        }
+        else if (proposal.proposalType == ProposalType.TokenMint) {
+            // Mintear nuevos tokens
+            try token.mint(proposal.mintTo, proposal.mintAmount) {
+                success = true;
+            } catch {
+                success = false;
+            }
+        }
+        else {
+            // ProposalType.Simple no requiere ninguna acción específica
+            success = true;
+        }
 
+        emit ProposalExecuted(proposalId, success);
+        return success;
     }
 
     // Delegation voting
