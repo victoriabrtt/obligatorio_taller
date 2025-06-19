@@ -29,6 +29,25 @@ export class DAOService {
       this.signer
     );
   }
+  
+  // Inicializa el servicio en modo solo lectura
+  async initializeReadOnly(provider: ethers.JsonRpcProvider) {
+    this.provider = provider as any; // Convertimos el tipo para compatibilidad
+    this.address = "0xSimulatedAddress"; // Dirección simulada
+    
+    // Inicializar contratos en modo solo lectura
+    this.daoContract = new ethers.Contract(
+      CONTRACTS.DAO.address,
+      DAO_ABI,
+      provider
+    );
+    
+    this.tokenContract = new ethers.Contract(
+      CONTRACTS.TOKEN.address,
+      TOKEN_ABI,
+      provider
+    );
+  }
 
   // Desconecta el servicio
   disconnect() {

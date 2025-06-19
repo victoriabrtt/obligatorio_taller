@@ -1,22 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { DAOService } from '../services/dao.service';
-import { WalletInfo } from '../connectors';
 
 // Definir el tipo para el contexto
 interface DAOContextType {
   connected: boolean;
   address: string | null;
-  connecting: boolean;
   error: string | null;
   daoService: DAOService;
   tokenBalance: string;
   voteStake: { amount: string; timestamp: number };
   proposalStake: { amount: string; timestamp: number };
   proposals: any[];
-  wallet: string | null;
-  connect: (walletInfo: WalletInfo) => Promise<void>;
-  disconnect: () => void;
   refreshData: () => Promise<void>;
 }
 
@@ -39,9 +34,8 @@ interface DAOProviderProps {
 
 // Provider que encapsula la lógica del contexto
 export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
-  const [connected, setConnected] = useState<boolean>(false);
-  const [connecting, setConnecting] = useState<boolean>(false);
-  const [address, setAddress] = useState<string | null>(null);
+  const [connected, setConnected] = useState<boolean>(true); // Asumimos conectado por defecto
+  const [address, setAddress] = useState<string | null>("0x123456789..."); // Dirección de ejemplo
   const [error, setError] = useState<string | null>(null);
   const [tokenBalance, setTokenBalance] = useState<string>('0');
   const [voteStake, setVoteStake] = useState<{ amount: string; timestamp: number }>({
@@ -53,45 +47,32 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
     timestamp: 0,
   });
   const [proposals, setProposals] = useState<any[]>([]);
-  const [wallet, setWallet] = useState<string | null>(null);
   
   // Crear instancia del servicio DAO
   const [daoService] = useState<DAOService>(new DAOService());
 
-  // Conectar a wallet
-  const connect = async (walletInfo: WalletInfo) => {
-    try {
-      setConnecting(true);
-      setError(null);
-      
-      const provider = await walletInfo.connector();
-      await daoService.initialize(provider);
-      
-      setConnected(true);
-      setAddress(daoService.getAddress());
-      setWallet(walletInfo.name);
-      
-      // Cargar datos iniciales
-      await refreshData();
-    } catch (err: any) {
-      console.error('Error conectando:', err);
-      setError(err.message || 'Error al conectar');
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  // Desconectar
-  const disconnect = () => {
-    daoService.disconnect();
-    setConnected(false);
-    setAddress(null);
-    setWallet(null);
-    setTokenBalance('0');
-    setVoteStake({ amount: '0', timestamp: 0 });
-    setProposalStake({ amount: '0', timestamp: 0 });
-    setProposals([]);
-  };
+  // Inicializamos directamente en algún momento, posiblemente en useEffect
+  useEffect(() => {
+    const initializeDAO = async () => {
+      try {
+        // En lugar de esperar una conexión de wallet, ahora inicializamos directamente 
+        // con un proveedor de solo lectura (podríamos usar Infura o similar)
+        const provider = new ethers.JsonRpcProvider('http://localhost:8545'); // O tu endpoint
+        await daoService.initializeReadOnly(provider);
+        
+        // Actualizar la dirección (podría ser una dirección fija o configurada)
+        setAddress(daoService.getAddress() || "0xDemo...Address");
+        
+        // Cargar datos iniciales
+        await refreshData();
+      } catch (err: any) {
+        console.error('Error inicializando DAO:', err);
+        setError(err.message || 'Error al inicializar');
+      }
+    };
+    
+    initializeDAO();
+  }, []);
 
   // Refrescar datos de usuario y DAO
   const refreshData = async () => {
@@ -121,7 +102,6 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
   // Valor del contexto
   const contextValue: DAOContextType = {
     connected,
-    connecting,
     address,
     error,
     daoService,
@@ -129,9 +109,6 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
     voteStake,
     proposalStake,
     proposals,
-    wallet,
-    connect,
-    disconnect,
     refreshData,
   };
 
