@@ -479,6 +479,30 @@ contract DAO {
         delegatorsPerProposal[proposalId].push(msg.sender); 
     }
 
+    /**
+     * @dev Compra tokens con ETH
+     * @param amount Cantidad de tokens a comprar (en wei)
+     */
+    function buyTokens(uint256 amount) external payable daoActive {
+        require(amount > 0, "Amount must be greater than 0");
+        
+        uint256 cost = (amount * tokenPriceInWei) / 1e18;
+        require(msg.value >= cost, "Insufficient ETH sent");
+        
+        // Acuñar los tokens para el comprador
+        token.mint(msg.sender, amount);
+        
+        // Devolver el cambio si se envió más ETH del necesario
+        uint256 refund = msg.value - cost;
+        if (refund > 0) {
+            payable(msg.sender).transfer(refund);
+        }
+        
+        emit TokensPurchased(msg.sender, amount, cost);
+    }
 
-
+    /**
+     * @dev Evento emitido cuando se compran tokens
+     */
+    event TokensPurchased(address indexed buyer, uint256 amount, uint256 cost);
 }
