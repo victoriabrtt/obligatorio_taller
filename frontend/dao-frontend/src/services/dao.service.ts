@@ -78,6 +78,13 @@ export class DAOService {
     });
   }
 
+  // Obtener el precio del token en wei
+  async getTokenPrice(): Promise<string> {
+    this.ensureConnected();
+    const price = await this.daoContract!.tokenPriceInWei();
+    return price.toString();
+  }
+
   // --- Funciones relacionadas con Staking ---
 
   // Depositar tokens en staking para votar
