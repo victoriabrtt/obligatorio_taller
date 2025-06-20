@@ -325,17 +325,6 @@ contract DAO {
 
     mapping(uint256 => mapping(address => bool)) public hasVoted;
 
-    function sqrt(uint256 x) public pure returns (uint256) {
-        if (x == 0) return 0;
-        uint256 z = (x + 1) / 2;
-        uint256 y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
-        return y;
-    }
-
     function voteProposal(uint256 proposalId, bool inFavor) external daoActive {
         require(proposalId < proposals.length, "Invalid proposal");
         require(!hasVoted[proposalId][msg.sender], "Already voted");

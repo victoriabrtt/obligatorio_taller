@@ -25,6 +25,7 @@
     "hardhat-coverage": "^0.9.19"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.3"
+    "@openzeppelin/contracts": "^4.9.3",
+    "dotenv": "^16.5.0"
   }
 }

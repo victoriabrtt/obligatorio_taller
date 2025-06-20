@@ -2,8 +2,11 @@ const { ethers } = require("hardhat");
 const { updateFrontendContracts } = require("./update-frontend");
 
 async function main() {
-  console.log("Starting deployment process...");
-
+  console.log("Starting deployment process with account focus...");
+  
+  // La cuenta de usuario específica que queremos asegurar que tenga fondos
+  const userAccount = "0x86BF80dC22E5ED99596C0443429a59670f47ea64";
+  
   // Get the network name
   const network = hre.network.name;
   console.log(`Deploying to network: ${network}`);
@@ -16,7 +19,6 @@ async function main() {
     [deployer, owner1, owner2, panicWallet1, panicWallet2] = await ethers.getSigners();
   } else {
     // For testnet/mainnet, use the same account for simplicity
-    // (in production, you would use separate secure wallets)
     deployer = (await ethers.getSigners())[0];
     owner1 = deployer;
     owner2 = deployer;
@@ -27,8 +29,19 @@ async function main() {
   console.log("Deployer:", deployer.address);
   console.log("Owner 1:", owner1.address);
   console.log("Owner 2:", owner2.address);
-  console.log("Panic Wallet 1:", panicWallet1.address);
-  console.log("Panic Wallet 2:", panicWallet2.address);
+  
+  // Enviar fondos a la cuenta de usuario primero
+  console.log(`Enviando 200 ETH a ${userAccount}...`);
+  const tx = await deployer.sendTransaction({
+    to: userAccount,
+    value: ethers.parseEther("200.0") // Una cantidad realmente grande
+  });
+  await tx.wait();
+  console.log("Fondos enviados exitosamente!");
+  
+  // Verificar saldo
+  const balance = await ethers.provider.getBalance(userAccount);
+  console.log(`Saldo de ${userAccount}: ${ethers.formatEther(balance)} ETH`);
 
   // Deploy del token
   const Token = await ethers.getContractFactory("MyToken");
@@ -53,7 +66,6 @@ async function main() {
   console.log("Owner multisig address:", ownerMultisigAddress);
   
   // Configurar multisig para pánico (requiere 1 de 2 firmas)
-  // Nota: Necesitamos usar el contrato Multisig del propietario para esta operación
   const Multisig = await ethers.getContractFactory("Multisig");
   const ownerMultisig = Multisig.attach(ownerMultisigAddress);
   
@@ -123,6 +135,10 @@ async function main() {
   await token.transferOwnership(daoAddress);
   console.log("Token ownership transferred to DAO");
   
+  // Pre-mintear algunos tokens para la cuenta de usuario (para pruebas)
+  await token.mint(userAccount, ethers.parseEther("1000"));
+  console.log(`Pre-minteados 1000 tokens para ${userAccount}`);
+  
   // Get contract addresses for frontend
   const contractAddresses = {
     daoAddress,
@@ -136,7 +152,8 @@ async function main() {
   const deploymentInfo = {
     network: hre.network.name,
     timestamp: new Date().toISOString(),
-    addresses: contractAddresses
+    addresses: contractAddresses,
+    userAccount: userAccount
   };
   
   // Create the deployments directory if it doesn't exist
@@ -158,12 +175,7 @@ async function main() {
   }
   
   console.log("\nDeployment completed successfully! 🎉");
-  
-  if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat') {
-    console.log("\nVerify contracts with:");
-    console.log(`npx hardhat verify --network ${hre.network.name} ${tokenAddress}`);
-    console.log(`npx hardhat verify --network ${hre.network.name} ${daoAddress} ${tokenAddress}`);
-  }
+  console.log(`Tu cuenta ${userAccount} ahora tiene 200 ETH y 1000 tokens pre-minteados para pruebas`);
 }
 
 main().catch((error) => {

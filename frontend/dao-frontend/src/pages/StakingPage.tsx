@@ -1,30 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, Heading, Stack, Text, Input, Spacer } from '@chakra-ui/react';
+import { 
+  Box, Button, Flex, Heading, Stack, Text, Input, Spacer,
+  Tabs, TabList, Tab, TabPanels, TabPanel,
+  Card, CardHeader, CardBody, CardFooter, 
+  Alert, AlertIcon, Divider, VStack
+} from '@chakra-ui/react';
 import { useDAO } from '../context/DAOContext';
 
+/**
+ * StakingPage - Handles both staking functionality and buying tokens
+ * Simplified for Conjunto A requirements
+ */
 const StakingPage: React.FC = () => {
   const { daoService, tokenBalance, voteStake, proposalStake, refreshData } = useDAO();
   
+  // State for staking
   const [voteStakeAmount, setVoteStakeAmount] = useState('');
   const [proposalStakeAmount, setProposalStakeAmount] = useState('');
+  
+  // State for tokens
   const [approveAmount, setApproveAmount] = useState('');
   const [buyAmount, setBuyAmount] = useState('');
   const [tokenPriceInWei, setTokenPriceInWei] = useState('0');
   
+  // UI state
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Cargar el precio del token cuando la página se carga
   useEffect(() => {
     const fetchTokenPrice = async () => {
-      if (daoService.isConnected()) {
-        try {
-          // Use a safer way to access the token price
-          const price = await daoService.getTokenPrice();
-          setTokenPriceInWei(price);
-        } catch (err) {
-          console.error("Error al obtener precio del token:", err);
-        }
+      try {
+        console.log("Obteniendo precio del token...");
+        // Use a safer way to access the token price
+        const price = await daoService.getTokenPrice();
+        console.log("Precio del token obtenido:", price);
+        setTokenPriceInWei(price);
+      } catch (err) {
+        console.error("Error al obtener precio del token:", err);
+        // Usar valor de respaldo conocido (0.01 ETH)
+        setTokenPriceInWei("10000000000000000");
+        console.log("Usando precio predeterminado: 0.01 ETH");
       }
     };
     
@@ -39,14 +55,17 @@ const StakingPage: React.FC = () => {
 
   // Calculamos el costo estimado en ETH de la compra de tokens
   const calculateEthCost = (): string => {
-    if (!buyAmount || isNaN(Number(buyAmount)) || !tokenPriceInWei || tokenPriceInWei === '0') {
+    if (!buyAmount || isNaN(Number(buyAmount)) || !tokenPriceInWei) {
       return '0';
     }
+    
+    // Si el precio del token es 0 o undefined, asumimos 0.01 ETH como valor predeterminado
+    const priceToUse = tokenPriceInWei === '0' ? '10000000000000000' : tokenPriceInWei;
     
     // Convertir a BigInt para cálculos precisos
     try {
       const amountWei = BigInt(Math.floor(Number(buyAmount) * 10**18));
-      const price = BigInt(tokenPriceInWei);
+      const price = BigInt(priceToUse);
       const cost = (amountWei * price) / BigInt(10**18);
       
       // Convertir a string y formatear para mostrar en ETH
@@ -155,125 +174,194 @@ const StakingPage: React.FC = () => {
     <Box p={6}>
       <Heading size="lg" mb={6}>Gestión de Tokens y Staking</Heading>
       
-      <Stack gap={8} mb={8}>
-        <Flex direction={["column", "row"]} gap={6}>
-          <Box flex="1" p={5} borderWidth="1px" borderRadius="lg" shadow="md">
-            <Heading size="md" mb={4}>Balance de Tokens</Heading>
-            <Text fontSize="2xl" fontWeight="bold" mb={4}>{tokenBalance} MTK</Text>
-            
-            <Box borderBottomWidth="1px" mb={4} />
-            
-            <Heading size="sm" mb={2}>Comprar Tokens con ETH</Heading>
-            <Stack gap={4}>
-              <Input 
-                placeholder="Cantidad de tokens a comprar" 
-                value={buyAmount}
-                onChange={(e) => setBuyAmount(e.target.value)}
-                type="number"
-              />
-              <Text fontSize="sm">
-                Costo estimado: {calculateEthCost()} ETH
-              </Text>
-              <Button 
-                colorScheme="green" 
-                onClick={handleBuyTokens}
-                disabled={!buyAmount || isProcessing || Number(buyAmount) <= 0}
-                width="full"
-              >
-                Comprar Tokens
-              </Button>
-            </Stack>
-            
-            <Box borderBottomWidth="1px" my={4} />
-            
-            <Heading size="sm" mb={2}>Aprobar Tokens para la DAO</Heading>
-            <Stack gap={4}>
-              <Input 
-                placeholder="Cantidad a aprobar" 
-                value={approveAmount}
-                onChange={(e) => setApproveAmount(e.target.value)}
-                type="number"
-              />
-              <Button 
-                colorScheme="blue" 
-                onClick={handleApprove}
-                disabled={!approveAmount || isProcessing}
-                width="full"
-              >
-                Aprobar Tokens
-              </Button>
-            </Stack>
-          </Box>
-          
-          <Box flex="1" p={5} borderWidth="1px" borderRadius="lg" shadow="md">
-            <Heading size="md" mb={2}>Staking para Votar</Heading>
-            <Text>Cantidad actual en stake: {voteStake.amount} MTK</Text>
-            <Text mb={4}>Último stake: {formatDate(voteStake.timestamp)}</Text>
-            
-            <Stack gap={4}>
-              <Input 
-                placeholder="Cantidad para stake" 
-                value={voteStakeAmount}
-                onChange={(e) => setVoteStakeAmount(e.target.value)}
-                type="number"
-              />
-              <Button 
-                colorScheme="green" 
-                onClick={handleStakeForVote}
-                disabled={!voteStakeAmount || isProcessing || Number(voteStake.amount) > 0}
-                width="full"
-              >
-                Depositar para Votar
-              </Button>
-              <Button 
-                colorScheme="red" 
-                onClick={handleUnstakeVote}
-                disabled={isProcessing || Number(voteStake.amount) <= 0}
-                width="full"
-              >
-                Retirar Stake de Votos
-              </Button>
-            </Stack>
-          </Box>
-          
-          <Box flex="1" p={5} borderWidth="1px" borderRadius="lg" shadow="md">
-            <Heading size="md" mb={2}>Staking para Propuestas</Heading>
-            <Text>Cantidad actual en stake: {proposalStake.amount} MTK</Text>
-            <Text mb={4}>Último stake: {formatDate(proposalStake.timestamp)}</Text>
-            
-            <Stack gap={4}>
-              <Input 
-                placeholder="Cantidad para stake" 
-                value={proposalStakeAmount}
-                onChange={(e) => setProposalStakeAmount(e.target.value)}
-                type="number"
-              />
-              <Button 
-                colorScheme="green" 
-                onClick={handleStakeForProposal}
-                disabled={!proposalStakeAmount || isProcessing || Number(proposalStake.amount) > 0}
-                width="full"
-              >
-                Depositar para Propuestas
-              </Button>
-              <Button 
-                colorScheme="red" 
-                onClick={handleUnstakeProposal}
-                disabled={isProcessing || Number(proposalStake.amount) <= 0}
-                width="full"
-              >
-                Retirar Stake de Propuestas
-              </Button>
-            </Stack>
-          </Box>
-        </Flex>
-      </Stack>
+      {/* Current token balance display */}
+      <Card mb={6}>
+        <CardBody>
+          <Flex justify="space-between" align="center">
+            <Text>Tu balance actual de tokens:</Text>
+            <Text fontSize="2xl" fontWeight="bold">{tokenBalance} MTK</Text>
+          </Flex>
+        </CardBody>
+      </Card>
       
+      {/* Error message display */}
       {error && (
-        <Box bg="red.100" p={4} borderRadius="md" mb={4}>
-          <Text color="red.800" fontWeight="medium">{error}</Text>
-        </Box>
+        <Alert status="error" mb={6} borderRadius="md">
+          <AlertIcon />
+          {error}
+        </Alert>
       )}
+      
+      {/* Tabs for organized functionality */}
+      <Tabs variant="enclosed" colorScheme="blue">
+        <TabList>
+          <Tab>Compra de Tokens</Tab>
+          <Tab>Staking para Votar</Tab>
+          <Tab>Staking para Propuestas</Tab>
+        </TabList>
+        
+        <TabPanels>
+          {/* Token Purchase Tab */}
+          <TabPanel>
+            <Card>
+              <CardHeader>
+                <Heading size="md">Comprar y Aprobar Tokens</Heading>
+              </CardHeader>
+              <CardBody>
+                <VStack spacing={6} align="stretch">
+                  {/* Buy tokens section */}
+                  <Box>
+                    <Heading size="sm" mb={3}>Comprar Tokens con ETH</Heading>
+                    <Input 
+                      placeholder="Cantidad de tokens a comprar" 
+                      value={buyAmount}
+                      onChange={(e) => setBuyAmount(e.target.value)}
+                      type="number"
+                      mb={3}
+                    />
+                    <Text fontSize="sm" mb={3}>
+                      Costo estimado: {calculateEthCost()} ETH
+                    </Text>
+                    <Button 
+                      colorScheme="green" 
+                      onClick={handleBuyTokens}
+                      isDisabled={!buyAmount || isProcessing || Number(buyAmount) <= 0}
+                      isLoading={isProcessing}
+                      loadingText="Comprando..."
+                      width="full"
+                    >
+                      Comprar Tokens
+                    </Button>
+                  </Box>
+                  
+                  <Divider />
+                  
+                  {/* Approve tokens section */}
+                  <Box>
+                    <Heading size="sm" mb={3}>Aprobar Tokens para la DAO</Heading>
+                    <Text fontSize="sm" mb={3}>
+                      Debes aprobar tokens antes de hacer staking
+                    </Text>
+                    <Input 
+                      placeholder="Cantidad a aprobar" 
+                      value={approveAmount}
+                      onChange={(e) => setApproveAmount(e.target.value)}
+                      type="number"
+                      mb={3}
+                    />
+                    <Button 
+                      colorScheme="blue" 
+                      onClick={handleApprove}
+                      isDisabled={!approveAmount || isProcessing}
+                      isLoading={isProcessing}
+                      loadingText="Aprobando..."
+                      width="full"
+                    >
+                      Aprobar Tokens
+                    </Button>
+                  </Box>
+                </VStack>
+              </CardBody>
+            </Card>
+          </TabPanel>
+          
+          {/* Voting Stake Tab */}
+          <TabPanel>
+            <Card>
+              <CardHeader>
+                <Heading size="md">Staking para Votar</Heading>
+              </CardHeader>
+              <CardBody>
+                <VStack spacing={6} align="stretch">
+                  <Box p={3} bg="blue.50" borderRadius="md">
+                    <Text fontWeight="medium">Cantidad actual en stake: {voteStake.amount} MTK</Text>
+                    <Text fontSize="sm">Último stake: {formatDate(voteStake.timestamp)}</Text>
+                  </Box>
+                  
+                  <Box>
+                    <Input 
+                      placeholder="Cantidad para stake" 
+                      value={voteStakeAmount}
+                      onChange={(e) => setVoteStakeAmount(e.target.value)}
+                      type="number"
+                      mb={3}
+                    />
+                    <Button 
+                      colorScheme="green" 
+                      onClick={handleStakeForVote}
+                      isDisabled={!voteStakeAmount || isProcessing || Number(voteStake.amount) > 0}
+                      isLoading={isProcessing}
+                      loadingText="Depositando..."
+                      width="full"
+                      mb={3}
+                    >
+                      Depositar para Votar
+                    </Button>
+                    <Button 
+                      colorScheme="red" 
+                      onClick={handleUnstakeVote}
+                      isDisabled={isProcessing || Number(voteStake.amount) <= 0}
+                      isLoading={isProcessing}
+                      loadingText="Retirando..."
+                      width="full"
+                    >
+                      Retirar Stake de Votos
+                    </Button>
+                  </Box>
+                </VStack>
+              </CardBody>
+            </Card>
+          </TabPanel>
+          
+          {/* Proposal Stake Tab */}
+          <TabPanel>
+            <Card>
+              <CardHeader>
+                <Heading size="md">Staking para Propuestas</Heading>
+              </CardHeader>
+              <CardBody>
+                <VStack spacing={6} align="stretch">
+                  <Box p={3} bg="purple.50" borderRadius="md">
+                    <Text fontWeight="medium">Cantidad actual en stake: {proposalStake.amount} MTK</Text>
+                    <Text fontSize="sm">Último stake: {formatDate(proposalStake.timestamp)}</Text>
+                  </Box>
+                  
+                  <Box>
+                    <Input 
+                      placeholder="Cantidad para stake" 
+                      value={proposalStakeAmount}
+                      onChange={(e) => setProposalStakeAmount(e.target.value)}
+                      type="number"
+                      mb={3}
+                    />
+                    <Button 
+                      colorScheme="green" 
+                      onClick={handleStakeForProposal}
+                      isDisabled={!proposalStakeAmount || isProcessing || Number(proposalStake.amount) > 0}
+                      isLoading={isProcessing}
+                      loadingText="Depositando..."
+                      width="full"
+                      mb={3}
+                    >
+                      Depositar para Propuestas
+                    </Button>
+                    <Button 
+                      colorScheme="red" 
+                      onClick={handleUnstakeProposal}
+                      isDisabled={isProcessing || Number(proposalStake.amount) <= 0}
+                      isLoading={isProcessing}
+                      loadingText="Retirando..."
+                      width="full"
+                    >
+                      Retirar Stake de Propuestas
+                    </Button>
+                  </Box>
+                </VStack>
+              </CardBody>
+            </Card>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </Box>
   );
 };

@@ -1,7 +1,13 @@
 import { ethers } from 'ethers';
 import { DAO_ABI, TOKEN_ABI, MULTISIG_ABI, CONTRACTS } from '../contracts/contracts';
 
-export class DAOService {
+export c  // Depositar tokens en staking para crear propuestas
+  async stakeForProposal(amount: string): Promise<ethers.TransactionResponse> {
+    this.ensureConnected();
+    this.ensureWalletConnected();
+    const amountWei = ethers.parseUnits(amount, 18);
+    return await this.daoContract!.stakeForProposal(amountWei);
+  }AOService {
   private provider: ethers.BrowserProvider | null = null;
   private daoContract: ethers.Contract | null = null;
   private tokenContract: ethers.Contract | null = null;
@@ -39,44 +45,23 @@ export class DAOService {
   
   // Inicializa el servicio en modo solo lectura
   async initializeReadOnly(provider: ethers.JsonRpcProvider) {
-    try {
-      console.log("Initializing DAOService in read-only mode");
-      this.provider = provider as any; // Convertimos el tipo para compatibilidad
-      this.address = "0xSimulatedAddress"; // Dirección simulada
-      
-      // Verificar la red
-      const network = await provider.getNetwork();
-      console.log("Connected to network:", { name: network.name, chainId: network.chainId });
-      
-      // Inicializar contratos en modo solo lectura
-      this.daoContract = new ethers.Contract(
-        CONTRACTS.DAO.address,
-        DAO_ABI,
-        provider
-      );
-      
-      this.tokenContract = new ethers.Contract(
-        CONTRACTS.TOKEN.address,
-        TOKEN_ABI,
-        provider
-      );
-      
-      // Verificar que podemos conectarnos a los contratos
-      try {
-        const tokenName = await this.tokenContract.name();
-        console.log("Successfully connected to token contract:", tokenName);
-      } catch (err) {
-        console.warn("Could not connect to token contract:", err);
-      }
-      
-      console.log("DAOService initialized in read-only mode with contracts:", {
-        dao: CONTRACTS.DAO.address,
-        token: CONTRACTS.TOKEN.address
-      });
-    } catch (err) {
-      console.error("Error initializing DAOService in read-only mode:", err);
-      throw err;
-    }
+    this.provider = provider as any; // Convertimos el tipo para compatibilidad
+    this.address = "0xSimulatedAddress"; // Dirección simulada
+    
+    // Inicializar contratos en modo solo lectura
+    this.daoContract = new ethers.Contract(
+      CONTRACTS.DAO.address,
+      DAO_ABI,
+      provider
+    );
+    
+    this.tokenContract = new ethers.Contract(
+      CONTRACTS.TOKEN.address,
+      TOKEN_ABI,
+      provider
+    );
+    
+    console.log("DAOService inicializado en modo lectura");
   }
 
   // Desconecta el servicio
@@ -109,162 +94,60 @@ export class DAOService {
 
   // Aprobar tokens para el contrato DAO
   async approveTokens(amount: string): Promise<ethers.TransactionResponse> {
-    this.ensureConnected(true); // Requiere wallet
+    this.ensureConnected();
+    this.ensureWalletConnected();
     const amountWei = ethers.parseUnits(amount, 18);
     return await this.tokenContract!.approve(CONTRACTS.DAO.address, amountWei);
   }
 
   // Comprar tokens con ETH
   async buyTokens(amount: string): Promise<ethers.TransactionResponse> {
-    this.ensureConnected(true); // Requiere wallet
+    this.ensureConnected();
+    this.ensureWalletConnected(); // Verificar que haya una wallet conectada para enviar la transacción
     
-    try {
-      console.log("Buying tokens:", amount);
-      const amountWei = ethers.parseUnits(amount, 18);
-      
-      // Comprobación detallada del contrato
-      if (!this.daoContract) {
-        console.error("daoContract is null");
-        throw new Error("DAO contract not initialized");
-      }
-      
-      // Comprobación de la billetera
-      const address = await this.signer?.getAddress();
-      console.log("Current wallet address:", address);
-      
-      const balance = await this.provider?.getBalance(address!);
-      console.log("Current wallet balance:", ethers.formatEther(balance || 0), "ETH");
-      
-      console.log("DAO contract address:", await this.daoContract.getAddress());
-      
-      // Imprimir información sobre el contrato y redes
-      const network = await this.provider?.getNetwork();
-      console.log("Connected network:", network?.name, "chainId:", network?.chainId);
-      
-      // Obtener el precio real del token desde el contrato
-      try {
-        const tokenPriceFromContract = await this.daoContract.tokenPriceInWei();
-        console.log("Token price from contract:", ethers.formatEther(tokenPriceFromContract), "ETH");
-        
-        // Calcular el costo total en ETH usando el precio del contrato
-        // La fórmula es: (cantidad * precio) / 10^18
-        const totalCost = (amountWei * tokenPriceFromContract) / BigInt(10**18);
-        console.log("Total ETH cost (from contract price):", ethers.formatEther(totalCost), "ETH for", amount, "tokens");
-        
-        // Verificar si hay suficientes fondos
-        if (balance && balance < totalCost) {
-          throw new Error(`Fondos insuficientes. Se necesitan ${ethers.formatEther(totalCost)} ETH pero solo tienes ${ethers.formatEther(balance)} ETH.`);
-        }
-        
-        // Añadir un pequeño margen para asegurarse de que hay suficiente ETH
-        const totalCostWithMargin = totalCost * BigInt(101) / BigInt(100); // 1% extra
-        
-        console.log("Sending transaction with value:", ethers.formatEther(totalCostWithMargin), "ETH");
-        
-        // Usar un límite de gas generoso para la red local
-        const tx = await this.daoContract!.buyTokens(amountWei, {
-          value: totalCostWithMargin,
-          gasLimit: 300000
-        });
-        
-        console.log("Transaction sent:", tx.hash);
-        return tx;
-      } catch (priceError) {
-        // Si hay un error al obtener el precio del contrato, usar el valor fijo
-        console.warn("Error getting token price from contract, using fixed price:", priceError);
-        
-        // Usar un precio fijo como respaldo
-        const tokenPrice = ethers.parseUnits("0.01", 18); // 0.01 ETH por token
-        console.log("Using fixed token price:", ethers.formatEther(tokenPrice), "ETH");
-        
-        // Calcular el costo total en ETH
-        const totalEthCost = (amountWei * tokenPrice) / BigInt(10**18);
-        console.log("Total ETH cost:", ethers.formatEther(totalEthCost), "for", amount, "tokens");
-        
-        // Verificar si hay suficientes fondos
-        if (balance && balance < totalEthCost) {
-          throw new Error(`Fondos insuficientes. Se necesitan ${ethers.formatEther(totalEthCost)} ETH pero solo tienes ${ethers.formatEther(balance)} ETH.`);
-        }
-        
-        // Añadir un pequeño margen para asegurarse de que hay suficiente ETH
-        const totalCostWithMargin = totalEthCost * BigInt(101) / BigInt(100); // 1% extra
-        
-        console.log("Sending transaction with value:", ethers.formatEther(totalCostWithMargin), "ETH");
-        
-        // Usar un límite de gas generoso para la red local
-        const tx = await this.daoContract!.buyTokens(amountWei, {
-          value: totalCostWithMargin,
-          gasLimit: 300000
-        });
-        
-        console.log("Transaction sent:", tx.hash);
-        return tx;
-      }
-    } catch (err) {
-      console.error("Error in buyTokens:", err);
-      throw err;
-    }
+    const amountWei = ethers.parseUnits(amount, 18);
+    const tokenPrice = await this.daoContract!.tokenPriceInWei();
+    const totalEthCost = (tokenPrice * amountWei) / ethers.parseUnits("1", 18);
+    
+    // Llamar a la función buyTokens con la cantidad de ETH necesaria
+    return await this.daoContract!.buyTokens(amountWei, {
+      value: totalEthCost
+    });
   }
 
   // Obtener el precio del token en wei
   async getTokenPrice(): Promise<string> {
-    try {
-      console.log("Getting token price - using fixed value for now");
-      // Por el momento, devolvemos un valor fijo para solucionar el error
-      return "10000000000000000"; // 0.01 ETH
-      
-      /* Código anterior comentado mientras resolvemos el problema
-      // Si no estamos conectados, usamos un provider genérico
-      if (!this.isConnected()) {
-        console.log("Getting token price in read-only mode");
-        // Intentar usar el método view sin necesidad de estar conectado
-        const provider = new ethers.JsonRpcProvider();
-        const readOnlyContract = new ethers.Contract(
-          CONTRACTS.DAO.address,
-          DAO_ABI,
-          provider
-        );
-        const price = await readOnlyContract.tokenPriceInWei();
-        return price.toString();
-      }
-      
-      // Si estamos conectados, usamos el contrato con signer
-      const price = await this.daoContract!.tokenPriceInWei();
-      console.log("Token price retrieved:", price.toString());
-      return price.toString();
-      */
-    } catch (err) {
-      console.error("Error getting token price:", err);
-      // Devolvemos un valor por defecto para evitar errores en la interfaz
-      return "10000000000000000"; // 0.01 ETH como fallback
-    }
+    this.ensureConnected();
+    const price = await this.daoContract!.tokenPriceInWei();
+    return price.toString();
   }
 
   // --- Funciones relacionadas con Staking ---
 
   // Depositar tokens en staking para votar
   async stakeForVote(amount: string): Promise<ethers.TransactionResponse> {
-    this.ensureConnected(true); // Requiere wallet
+    this.ensureConnected();
+    this.ensureWalletConnected();
     const amountWei = ethers.parseUnits(amount, 18);
     return await this.daoContract!.stakeForVote(amountWei);
   }
 
   // Depositar tokens en staking para propuestas
   async stakeForProposal(amount: string): Promise<ethers.TransactionResponse> {
-    this.ensureConnected(true); // Requiere wallet
+    this.ensureConnected();
     const amountWei = ethers.parseUnits(amount, 18);
     return await this.daoContract!.stakeForProposal(amountWei);
   }
 
   // Retirar tokens de staking para votar
   async unstakeVote(): Promise<ethers.TransactionResponse> {
-    this.ensureConnected(true); // Requiere wallet
+    this.ensureConnected();
     return await this.daoContract!.unstakeVote();
   }
 
   // Retirar tokens de staking para propuestas
   async unstakeProposal(): Promise<ethers.TransactionResponse> {
-    this.ensureConnected(true); // Requiere wallet
+    this.ensureConnected();
     return await this.daoContract!.unstakeProposal();
   }
 
@@ -473,24 +356,17 @@ export class DAOService {
 
   // --- Funciones auxiliares ---
 
-  /**
-   * Verifica si el servicio está conectado y listo para realizar operaciones
-   * Si no está inicializado, intenta inicializarlo en modo solo lectura
-   * Si se necesita una wallet para escribir operaciones (escribirContra), lanza un error si no hay una conectada
-   * @param requiereWallet Indica si la operación requiere una wallet conectada
-   */
-  private ensureConnected(requiereWallet = false) {
-    // Si no está inicializado, intentamos inicializar en modo solo lectura
+  // Verificar si está inicializado (solo o con lectura)
+  private ensureConnected() {
     if (!this.isInitialized()) {
-      console.warn("DAOService no está inicializado. Intentando inicializar en modo solo lectura...");
-      // Inicializar en modo solo lectura debería hacerse de forma asíncrona,
-      // pero como esta función no es async, solo mostramos una advertencia
       throw new Error("DAOService no está inicializado. Llame a initialize() o initializeReadOnly() primero.");
     }
-
-    // Si requiere una wallet pero no hay signer, lanzamos error
-    if (requiereWallet && (!this.signer || this.address === "0xSimulatedAddress")) {
-      throw new Error("Esta operación requiere una cartera conectada. Por favor, conecta tu wallet primero.");
+  }
+  
+  // Verificar si hay una wallet conectada para operaciones de escritura
+  private ensureWalletConnected() {
+    if (!this.signer) {
+      throw new Error("Necesitas conectar una wallet para realizar esta operación. Actualmente estás en modo solo lectura.");
     }
   }
 }
