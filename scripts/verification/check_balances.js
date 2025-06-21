@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const targetAddress = "0x86BF80dC22E5ED99596C0443429a59670f47ea64";
+  const targetAddress = "0x86BF80dC22E5ED99596C0443429a59670f47ea64"; // Dirección a la que enviamos los fondos
   
   // Verificar saldos con el proveedor de Hardhat
   const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
