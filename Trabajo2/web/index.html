@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiToken dApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 14px;
+            width: 300px;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .action-row {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>MiToken dApp</h1>
+
+    <div class="card">
+        <h2>Conexión</h2>
+        <div class="action-row">
+            <button id="btnConnect">Conectar Wallet</button>
+            <div id="walletAddress" class="status"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Consultar Balance</h2>
+        <div class="action-row">
+            <input type="text" id="balanceAddress" placeholder="Dirección de la wallet">
+            <button id="btnGetBalance">Consultar</button>
+        </div>
+        <div id="balanceResult" class="result"></div>
+    </div>
+
+    <div class="card">
+        <h2>Transferir Tokens</h2>
+        <div class="action-row">
+            <input type="text" id="transferAddress" placeholder="Dirección destino">
+        </div>
+        <div class="action-row">
+            <input type="number" id="transferAmount" placeholder="Cantidad de tokens">
+            <button id="btnTransfer">Transferir</button>
+        </div>
+        <div id="transferStatus" class="status"></div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
