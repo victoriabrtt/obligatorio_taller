@@ -1,124 +1,184 @@
 # MiToken dApp
 
-Este proyecto es una dApp simple que permite interactuar con un token ERC20 llamado MiToken. La dApp permite conectarse a una wallet (como MetaMask), consultar el balance de cualquier dirección y realizar transferencias de tokens.
+Este proyecto es una dApp simple que permite interactuar con un token ERC20 llamado MiToken. La aplicación permite conectarse a MetaMask, consultar el balance de cualquier dirección y realizar transferencias de tokens.
+
+## Resumen rápido
+
+```
+1️⃣ Instalación: npm install
+2️⃣ Compila:     npm run compile
+3️⃣ Inicia nodo: npm run node         (Terminal 1 - mantener abierta)
+4️⃣ Despliega:   npm run deploy       (Terminal 2)
+5️⃣ Servidor:    npm run serve:express (Terminal 3)
+6️⃣ Configura:   MetaMask con http://127.0.0.1:8545 y Chain ID 31337
+7️⃣ Usa:         Abre http://localhost:3000 y conecta MetaMask
+```
 
 ## Características
 
-- Conectar a una wallet en el navegador (MetaMask)
+- Conectar a MetaMask con un solo clic
 - Consultar el balance de cualquier dirección (función `balanceOf`)
 - Transferir tokens a cualquier dirección (función `transfer`)
-- El contrato asigna todo el suministro inicial al creador (deployer)
+- El contrato asigna todo el suministro inicial (1,000,000 tokens) al creador del contrato
 
 ## Requisitos previos
 
 - Node.js (v12 o superior)
 - npm (v6 o superior)
-- MetaMask instalado en el navegador
+- MetaMask instalado en tu navegador
+- Git (opcional, solo para clonar el repositorio)
 
-## Instalación
+## Guía paso a paso
 
-1. Clona este repositorio o descomprime el archivo del proyecto.
-2. Abre una terminal en la carpeta del proyecto.
-3. Instala las dependencias:
+Esta guía te llevará por todo el proceso, desde la instalación hasta el uso de la dApp.
+
+```
+┌─────────────┐     ┌──────────────┐     ┌────────────────┐     ┌────────────────┐
+│  Instalación │────►│  Compilación │────►│  Nodo Hardhat  │────►│   Despliegue   │
+└─────────────┘     └──────────────┘     └────────────────┘     └────────────────┘
+                                                                        │
+                                                                        ▼
+┌─────────────┐     ┌──────────────┐     ┌────────────────┐     ┌────────────────┐
+│    Usar     │◄────│   Conectar   │◄────│ Config MetaMask │◄────│Servidor Express│
+│    dApp     │     │   MetaMask   │     │                 │     │                │
+└─────────────┘     └──────────────┘     └────────────────┘     └────────────────┘
+```
+
+### 1. Instalación
 
 ```bash
+# Clona el repositorio (opcional, si lo descargaste como archivo ZIP puedes saltarte este paso)
+git clone <URL_del_repositorio>
+
+# Navega a la carpeta del proyecto
+cd Trabajo2
+
+# Instala las dependencias
 npm install
 ```
 
-## Compilación del contrato
-
-Para compilar el contrato MiToken:
+### 2. Compilación del contrato
 
 ```bash
+# Compila el contrato MiToken
 npm run compile
 ```
 
-Esto generará los artefactos del contrato en la carpeta `web/artifacts/`.
+Este comando generará los artefactos necesarios en la carpeta `web/artifacts/`.
 
-## Despliegue del contrato
+### 3. Inicia el nodo local de Hardhat
 
-### Opción 1: Despliegue en red local
-
-1. Inicia una red local de Hardhat en una terminal:
+Abre una nueva terminal, navega a la carpeta del proyecto y ejecuta:
 
 ```bash
+# Inicia un nodo de Ethereum local
 npm run node
 ```
 
-2. En otra terminal, despliega el contrato en la red local:
+IMPORTANTE: Deja esta terminal abierta durante todo el proceso. Este comando inicia una blockchain local de Ethereum que escucha en `http://127.0.0.1:8545` y tiene el Chain ID `31337`.
+
+### 4. Despliega el contrato
+
+Abre otra terminal (dejando abierta la del nodo Hardhat), navega a la carpeta del proyecto y ejecuta:
 
 ```bash
+# Despliega el contrato en la red local
 npm run deploy
 ```
 
-### Opción 2: Despliegue en una red de prueba (Sepolia)
+Este comando despliega el contrato MiToken en tu blockchain local y guarda la dirección del contrato en `web/contract-address.json`.
 
-1. Configura tu archivo `.env` con tu clave privada y la URL del proveedor (no incluido en este repo por seguridad).
-2. Ejecuta:
+### 5. Inicia el servidor web
+
+Manteniendo las otras dos terminales abiertas (nodo Hardhat y la terminal donde desplegaste), abre una tercera terminal y ejecuta:
 
 ```bash
-npm run deploy-live
+# Usando Express (opción recomendada)
+npm run serve:express
 ```
 
-## Ejecución de la dApp
+Esto iniciará un servidor web en `http://localhost:3000` que sirve la dApp.
 
-Una vez que el contrato esté desplegado, puedes ejecutar la dApp de las siguientes maneras:
+#### Otras formas de servir la dApp (opcional)
 
-### Opción 1: Servidor web con scripts npm (recomendado)
-
-Hemos añadido varios scripts para facilitar el acceso a la dApp:
+Si prefieres, puedes usar alguna de estas alternativas:
 
 ```bash
-# Usando Express (recomendado)
-npm run serve:express
-
 # Usando Python
 npm run serve:python
 
-# Usando el servidor simple serve
+# Usando el servidor simple 'serve'
 npm run serve
-```
 
-### Opción 2: Servidor web con comandos directos
-
-Si prefieres ejecutar los comandos directamente:
-
-```bash
-# Usando Express
+# O directamente con Express
 node server.js
-
-# Usando Python 3
-python3 -m http.server 3000 --bind 127.0.0.1 --directory ./web
-
-# Usando http-server
-npx http-server ./web
 ```
 
-### Opción 3: Live Server en VSCode
+También puedes usar la extensión "Live Server" de VS Code:
+1. Abre el archivo `web/index.html` en VS Code
+2. Haz clic derecho en el archivo y selecciona "Open with Live Server"
 
-Si estás utilizando Visual Studio Code:
+### 6. Configura MetaMask
 
-1. Instala la extensión "Live Server" desde el Marketplace de VSCode
-2. Abre el archivo `web/index.html` en VSCode
-3. Haz clic derecho en el archivo y selecciona "Open with Live Server"
+Este paso es **CRÍTICO**. MetaMask debe estar configurado correctamente para conectarse a tu nodo Hardhat local:
 
-### Opción 4: Abrir el archivo directamente
+1. Abre la extensión de MetaMask en tu navegador
+2. Haz clic en el selector de redes (arriba)
+3. Selecciona "Agregar red" > "Agregar una red manualmente"
+4. Configura la red con estos valores exactos:
+   - **Nombre de la red**: Hardhat Local
+   - **URL de RPC**: http://127.0.0.1:8545
+   - **ID de la cadena**: 31337
+   - **Símbolo de la moneda**: ETH
 
-También puedes abrir el archivo `web/index.html` directamente en tu navegador, pero algunas funciones pueden no trabajar correctamente debido a restricciones de seguridad por las políticas CORS.
+IMPORTANTE: La URL de RPC debe ser exactamente http://127.0.0.1:8545 y el ID de cadena debe ser exactamente 31337.
 
-## Uso de la dApp
+### 7. Usa la dApp
 
-1. Abre la dApp en tu navegador.
-2. Haz clic en "Conectar Wallet" para conectar MetaMask.
-3. Asegúrate de que MetaMask esté conectado a la misma red donde desplegaste el contrato.
-4. Para consultar un balance:
-   - Ingresa una dirección en el campo correspondiente.
-   - Haz clic en "Consultar".
-5. Para transferir tokens:
-   - Ingresa la dirección destino.
-   - Ingresa la cantidad de tokens a transferir.
-   - Haz clic en "Transferir".
-   - Confirma la transacción en MetaMask.
+1. Abre la dApp en tu navegador en http://localhost:3000
+2. Haz clic en "Conectar Wallet" y autoriza la conexión en MetaMask
+3. Si MetaMask te muestra que estás en una red incorrecta, cambia a la red "Hardhat Local"
+4. Ahora puedes:
+   - **Consultar balance**: Ingresa una dirección y haz clic en "Consultar"
+   - **Transferir tokens**: Ingresa la dirección destino, la cantidad y haz clic en "Transferir"
+
+IMPORTANTE: Asegúrate de ver "Hardhat (Chain ID: 31337)" en la información de red en la dApp. Si ves otro Chain ID, verifica tu configuración de MetaMask.
+
+### 8. Importa una cuenta con fondos (opcional)
+
+Para usar una cuenta con fondos y tokens MiToken predeterminados:
+
+1. En MetaMask, haz clic en tu foto de perfil > "Importar cuenta"
+2. Copia una clave privada del nodo Hardhat (mostrada en la terminal donde ejecutaste `npm run node`)
+3. Pega la clave privada y haz clic en "Importar"
+
+Esta cuenta tendrá ETH para pagar gas y será el dueño de todos los tokens MiToken.
+
+## Arquitectura del proyecto
+
+```
+┌───────────────────────────────────────────┐
+│               Navegador                   │
+│  ┌────────────┐          ┌────────────┐   │
+│  │  Frontend  │◄────────►│  MetaMask  │   │
+│  │   (dApp)   │          │            │   │
+│  └────────────┘          └────────────┘   │
+└───────────┬───────────────────────────────┘
+            │
+            │ JSON-RPC
+            ▼
+┌───────────────────────────────────────────┐
+│         Nodo Ethereum (Hardhat)           │
+│                                           │
+│  ┌────────────────────────────────────┐   │
+│  │            Blockchain              │   │
+│  │      ┌────────────────────────┐    │   │
+│  │      │    Contrato MiToken    │    │   │
+│  │      └────────────────────────┘    │   │
+│  │                                    │   │
+│  └────────────────────────────────────┘   │
+└───────────────────────────────────────────┘
+```
 
 ## Estructura del proyecto
 
@@ -129,64 +189,88 @@ Trabajo2/
 ├── scripts/                # Scripts de despliegue
 │   └── deploy.js           # Script para desplegar el contrato
 ├── web/                    # Frontend de la dApp
-│   ├── index.html          # Página principal de la dApp
+│   ├── index.html          # Página principal
 │   ├── app.js              # Lógica de la aplicación
 │   └── contract-address.json # Dirección del contrato desplegado
-├── hardhat.config.js       # Configuración de Hardhat
+├── server.js               # Servidor Express para la dApp
+├── hardhat.config.js       # Configuración de Hardhat (Chain ID 31337)
 └── package.json            # Dependencias y scripts
 ```
 
-## Nota sobre el contrato MiToken
+## Detalles técnicos
 
-El contrato MiToken es un token ERC20 básico que:
-- Tiene el símbolo "MTK"
-- Tiene 18 decimales
-- Tiene un suministro inicial de 1,000,000 tokens
-- Asigna todo el suministro inicial al deployer del contrato
+### Contrato MiToken
 
-## Solución de problemas
+El contrato `MiToken.sol` es un token ERC20 estándar con las siguientes características:
+- **Nombre**: MiToken
+- **Símbolo**: MTK
+- **Decimales**: 18
+- **Suministro inicial**: 1,000,000 tokens
+- Todo el suministro inicial se asigna al creador del contrato
 
-### Problemas con el servidor web
+## Solución de problemas comunes
 
-Si encuentras errores 404 o no puedes acceder a la dApp, prueba estas soluciones:
+### ✅ MetaMask no puede detectar el Chain ID
 
-1. **Usa el servidor Express incluido** (más confiable):
-   ```bash
-   node server.js
-   ```
+Este es un problema común al configurar redes locales. Si ves este mensaje:
 
-2. **Verifica que estés en la carpeta correcta**:
-   Asegúrate de estar ejecutando los comandos desde la carpeta `Trabajo2`.
+> No se pudo capturar el id. de cadena. ¿La dirección URL de RPC es correcta?
 
-3. **Accede directamente al archivo HTML**:
-   Abre el archivo `/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo2/web/index.html` directamente en tu navegador.
+Solución paso a paso:
 
-4. **Comprueba los errores en la consola del navegador**:
-   Presiona F12 y ve a la pestaña Console para verificar si hay errores CORS u otros problemas.
+1. **Verifica que el nodo Hardhat esté ejecutándose**
+   - Comprueba la terminal donde ejecutaste `npm run node`
+   - Debería mostrar "Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/"
 
-### La dApp no puede conectarse a MetaMask
+2. **Configura MetaMask con valores exactos**
+   - URL de RPC: http://127.0.0.1:8545 (usa 127.0.0.1, no localhost)
+   - ID de cadena: 31337 (debe ser este número exacto)
+   - Asegúrate de no tener espacios adicionales en la URL
 
-- Asegúrate de que MetaMask esté instalado y desbloqueado.
-- Verifica que estés en la red correcta en MetaMask.
-- Configura una red personalizada en MetaMask con estos parámetros:
-  - Nombre: Hardhat Local
-  - URL RPC: http://localhost:8545 (o http://127.0.0.1:8545)
-  - ID de Cadena: 31337
-  - Símbolo de Moneda: ETH
+3. **Reinicia MetaMask**
+   - Haz clic en tu foto de perfil > Configuración > Avanzado > Restablecer cuenta
+   - O cierra completamente el navegador y ábrelo de nuevo
 
-### Error al cargar la dirección del contrato
+4. **Verifica la configuración de Hardhat**
+   - El archivo `hardhat.config.js` debe tener `chainId: 31337` en la sección networks.hardhat
+   
+5. **Prueba estas soluciones adicionales**
+   - Intenta usar la URL completa con protocolo: http://127.0.0.1:8545 
+   - Abre una nueva ventana de navegación privada/incógnito e intenta ahí
+   - Desactiva temporalmente cualquier extensión de seguridad/privacidad
+   - En algunos sistemas, puede ser necesario permitir específicamente conexiones al localhost
 
-- Asegúrate de que el contrato se haya desplegado correctamente ejecutando `npm run deploy`.
-- Verifica que el archivo `web/contract-address.json` contenga la dirección correcta.
-- Comprueba que el nodo de Hardhat esté ejecutándose (`npm run node`).
-- Abre la consola del navegador (F12 > Console) para ver mensajes de error detallados.
+6. **Si sigues teniendo problemas**
+   - Ejecuta `lsof -i :8545` en terminal para verificar que el puerto está abierto
+   - Intenta reiniciar el nodo Hardhat: detén el proceso y ejecútalo nuevamente
+   - Comprueba que no hay otro nodo Ethereum usando el mismo puerto
 
-### La transferencia falla
+### ✅ La conexión a MetaMask falla
 
-- Asegúrate de tener suficientes tokens para transferir.
-- Comprueba que tengas ETH para pagar el gas de la transacción.
-- Verifica que la dirección de destino sea válida.
+1. **Revisa la consola del navegador** (F12 > Console) para ver errores detallados
+2. **Asegúrate de que MetaMask esté desbloqueado** antes de conectar
+3. **Prueba otra cuenta** de MetaMask si la actual tiene problemas
 
-## Consideraciones de seguridad
+### ✅ Error al cargar la dirección del contrato
 
-Este es un proyecto educativo y no está optimizado para uso en producción. En un entorno real, se deberían implementar medidas adicionales de seguridad y auditorías del contrato.
+1. **Verifica el despliegue**: Ejecuta `npm run deploy` nuevamente
+2. **Comprueba el archivo**: Abre `web/contract-address.json` y verifica que contenga una dirección válida
+3. **Verifica el nodo**: Asegúrate de que el nodo Hardhat siga ejecutándose
+4. **Orden correcto**: Primero inicia el nodo, luego despliega el contrato, y finalmente inicia el servidor web
+
+### ✅ No puedes transferir tokens
+
+1. **Asegúrate de usar la cuenta correcta**: La cuenta que desplegó el contrato tiene todos los tokens
+2. **Verifica el saldo**: Consulta tu balance antes de transferir
+3. **Formato correcto**: Usa puntos para decimales, no comas
+4. **Confirma la transacción**: Asegúrate de confirmar la transacción en MetaMask cuando aparezca
+
+### ✅ Otros problemas técnicos
+
+1. **Reinicia todo el proceso**: A veces, reiniciar todos los servicios soluciona problemas inesperados
+2. **Limpia la caché**: Prueba con Ctrl+F5 o limpia la caché del navegador
+3. **Prueba otro navegador**: Si tienes problemas persistentes con un navegador, prueba otro
+
+## Nota importante
+
+Este proyecto es una dApp educativa y no está optimizada para uso en producción. En un entorno real, se requeriría una mayor seguridad, pruebas exhaustivas y auditorías de contratos.
