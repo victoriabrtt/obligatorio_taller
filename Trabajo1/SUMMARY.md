@@ -38,10 +38,32 @@ El proyecto ha sido implementado exitosamente con los siguientes componentes:
 
 ### Mejoras y Observaciones
 
-- **Metadatos NFT**: Se ha implementado una solución básica para la generación de metadatos. Para una implementación completa en producción, se recomendaría:
-  1. Generar un JSON completo que siga el estándar de metadatos ERC721
-  2. Subir este JSON a IPFS para asegurar descentralización
-  3. Agregar imágenes únicas para cada NFT
+- **Metadatos NFT**: Se ha implementado una solución que simula metadatos almacenados en IPFS:
+  1. Se genera una URI única para cada NFT en el formato `ipfs://QmUyArtCollection/{userAddress}_{index}`
+  2. Esta implementación simula lo que sería un identificador real de IPFS
+  3. En una implementación de producción, se generaría un JSON completo con esta estructura:
+  ```json
+  {
+    "name": "Uruguay Art #1",
+    "description": "Pieza de arte uruguayo de la colección UyArt",
+    "image": "ipfs://QmImageHash/1.jpg",
+    "attributes": [
+      {
+        "trait_type": "Artista",
+        "value": "Nombre del Artista"
+      },
+      {
+        "trait_type": "Estilo",
+        "value": "Abstracto"
+      },
+      {
+        "trait_type": "Año",
+        "value": "2025"
+      }
+    ]
+  }
+  ```
+  4. Este JSON se subiría a IPFS y la URI resultante se almacenaría en el contrato
 
 - **Seguridad**: El contrato implementa verificaciones de seguridad básicas como:
   1. Verificación de direcciones no nulas

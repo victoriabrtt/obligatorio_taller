@@ -274,4 +274,29 @@ contract UyArt {
     function generateTokenURI(string memory imageHash) internal pure returns (string memory) {
         return imageHash;
     }
+    
+    /**
+     * @dev Función auxiliar para ver tokens de un propietario (no es parte del estándar ERC721)
+     * Útil para interfaces y para testear
+     */
+    function tokensOfOwner(address _owner) external view returns (uint256[] memory) {
+        uint256 tokenCount = _balances[_owner];
+        
+        if (tokenCount == 0) {
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 counter = 0;
+            
+            // Recorremos todo el rango de tokens posibles
+            for (uint256 i = 1; i <= _tokenIdCounter && counter < tokenCount; i++) {
+                if (_owners[i] == _owner) {
+                    result[counter] = i;
+                    counter++;
+                }
+            }
+            
+            return result;
+        }
+    }
 }
