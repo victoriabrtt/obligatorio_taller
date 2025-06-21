@@ -11,7 +11,7 @@ describe("DAO - Multisig Integration", function () {
     const Token = await ethers.getContractFactory("MyToken");
     token = await Token.deploy();
 
-    const DAO = await ethers.getContractFactory("DAO");
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     dao = await DAO.deploy(await token.getAddress());
 
     // Configurar multisig de propietario con 2 firmantes
