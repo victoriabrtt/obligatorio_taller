@@ -1,46 +1,103 @@
-# Getting Started with Create React App
+# DAO Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este proyecto es el frontend para la Decentralized Autonomous Organization (DAO) desarrollada para el Obligatorio 2025 de Taller de Blockchain.
 
-## Available Scripts
+## Descripción General
 
-In the project directory, you can run:
+La DAO implementa un sistema de gobernanza descentralizada con las siguientes características clave:
+
+- **Conjunto A**: 
+  - Votación cuadrática: el poder de voto es proporcional a la raíz cuadrada de los tokens en stake
+  - Delegación de votos: tanto general como específica por propuesta
+
+- **Características principales**:
+  - Staking de tokens para votar y crear propuestas
+  - Creación de diferentes tipos de propuestas
+  - Votación y ejecución de propuestas aprobadas
+  - Compra de tokens con ETH
+  - Administración de parámetros del sistema DAO
+
+## Arquitectura
+
+El frontend se estructura de la siguiente manera:
+
+- **Páginas**:
+  - `StakingPage.tsx`: Gestión de staking y compra de tokens
+  - `ProposalsList.tsx`: Visualización y filtrado de propuestas
+  - `ProposalDetail.tsx`: Detalle de propuesta y votación
+  - `CreateProposal.tsx`: Creación de propuestas
+
+- **Contextos**:
+  - `DAOContext`: Provee acceso a los servicios de la DAO y estado global
+
+- **Servicios**:
+  - Conexión con los contratos inteligentes
+  - Gestión de transacciones
+
+## Funciones del Conjunto A
+
+### Votación Cuadrática
+
+La implementación de votación cuadrática permite un sistema más democrático donde:
+- El poder de voto es la raíz cuadrada de los tokens en stake
+- Esto reduce la influencia desproporcionada de los grandes poseedores de tokens
+- La fórmula usada es: `sqrt(tokens_staked) * 1e9 / votePowerDivider`
+
+### Delegación de Votos
+
+Implementa dos tipos de delegación:
+- **Delegación general**: Un usuario puede delegar todos sus votos a otro usuario
+- **Delegación por propuesta**: Un usuario puede delegar su voto para una propuesta específica
+
+## Requisitos
+
+- Node.js v16 o superior
+- Metamask u otra wallet compatible con Ethereum
+- Conexión a una red compatible (Hardhat local, testnet Sepolia, etc.)
+
+## Configuración
+
+1. Instalar dependencias:
+```bash
+npm install
+```
+
+2. Configurar variables de entorno (crear archivo `.env`):
+```
+REACT_APP_DAO_ADDRESS=0x...
+REACT_APP_TOKEN_ADDRESS=0x...
+REACT_APP_CHAIN_ID=31337  # Para red local
+```
+
+## Scripts Disponibles
 
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Ejecuta la aplicación en modo desarrollo en [http://localhost:3000](http://localhost:3000)
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Compila la aplicación para producción en la carpeta `build`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Despliegue
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+El frontend puede desplegarse en cualquier servicio de hosting estático como:
+- Netlify
+- Vercel
+- GitHub Pages
+- IPFS (para una solución completamente descentralizada)
 
-### `npm run eject`
+## Flujo de Trabajo
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+1. **Conectar wallet**: La aplicación detectará automáticamente Metamask o wallets compatibles
+2. **Comprar tokens**: Adquirir los tokens de gobernanza con ETH
+3. **Hacer staking**: Hacer staking para activar funciones de votación o creación de propuestas
+4. **Participar**: Crear propuestas, votar, o delegar votos
+5. **Ejecutar propuestas**: Las propuestas aprobadas pueden ejecutarse al finalizar el período de votación
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Contratos Relacionados
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **DAO.sol**: Contrato principal con la lógica de gobernanza
+- **MyToken.sol**: Implementación del token ERC20 utilizado por la DAO
+- **Multisig.sol**: Contratos para la administración multifirma
+- **MultisigFactory.sol**: Fábrica para crear nuevos contratos multifirma
