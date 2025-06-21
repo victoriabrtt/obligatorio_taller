@@ -9,7 +9,9 @@
     "node": "hardhat node",
     "deploy": "hardhat run scripts/deploy.js --network localhost",
     "deploy-live": "hardhat run scripts/deploy.js --network sepolia",
-    "serve": "npx serve ./web"
+    "serve": "npx serve ./web",
+    "serve:express": "node server.js",
+    "serve:python": "python3 -m http.server 3000 --bind 127.0.0.1 --directory ./web"
   },
   "keywords": [
     "ethereum",
@@ -21,6 +23,7 @@
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "express": "^5.1.0",
     "hardhat": "^2.12.0",
     "serve": "^14.2.4"
   },

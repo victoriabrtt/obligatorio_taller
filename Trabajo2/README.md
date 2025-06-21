@@ -64,27 +64,47 @@ npm run deploy-live
 
 Una vez que el contrato esté desplegado, puedes ejecutar la dApp de las siguientes maneras:
 
-### Opción 1: Servidor web simple (para desarrollo)
+### Opción 1: Servidor web con scripts npm (recomendado)
 
-Puedes usar un servidor web simple como `http-server`:
+Hemos añadido varios scripts para facilitar el acceso a la dApp:
 
 ```bash
+# Usando Express (recomendado)
+npm run serve:express
+
+# Usando Python
+npm run serve:python
+
+# Usando el servidor simple serve
+npm run serve
+```
+
+### Opción 2: Servidor web con comandos directos
+
+Si prefieres ejecutar los comandos directamente:
+
+```bash
+# Usando Express
+node server.js
+
+# Usando Python 3
+python3 -m http.server 3000 --bind 127.0.0.1 --directory ./web
+
+# Usando http-server
 npx http-server ./web
 ```
 
-O si tienes Python instalado:
+### Opción 3: Live Server en VSCode
 
-```bash
-# Python 3
-python -m http.server --directory web
+Si estás utilizando Visual Studio Code:
 
-# Python 2
-python -m SimpleHTTPServer
-```
+1. Instala la extensión "Live Server" desde el Marketplace de VSCode
+2. Abre el archivo `web/index.html` en VSCode
+3. Haz clic derecho en el archivo y selecciona "Open with Live Server"
 
-### Opción 2: Abrir el archivo directamente
+### Opción 4: Abrir el archivo directamente
 
-También puedes abrir el archivo `web/index.html` directamente en tu navegador, pero algunas funciones pueden no trabajar correctamente debido a restricciones de seguridad.
+También puedes abrir el archivo `web/index.html` directamente en tu navegador, pero algunas funciones pueden no trabajar correctamente debido a restricciones de seguridad por las políticas CORS.
 
 ## Uso de la dApp
 
@@ -126,15 +146,39 @@ El contrato MiToken es un token ERC20 básico que:
 
 ## Solución de problemas
 
+### Problemas con el servidor web
+
+Si encuentras errores 404 o no puedes acceder a la dApp, prueba estas soluciones:
+
+1. **Usa el servidor Express incluido** (más confiable):
+   ```bash
+   node server.js
+   ```
+
+2. **Verifica que estés en la carpeta correcta**:
+   Asegúrate de estar ejecutando los comandos desde la carpeta `Trabajo2`.
+
+3. **Accede directamente al archivo HTML**:
+   Abre el archivo `/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo2/web/index.html` directamente en tu navegador.
+
+4. **Comprueba los errores en la consola del navegador**:
+   Presiona F12 y ve a la pestaña Console para verificar si hay errores CORS u otros problemas.
+
 ### La dApp no puede conectarse a MetaMask
 
 - Asegúrate de que MetaMask esté instalado y desbloqueado.
 - Verifica que estés en la red correcta en MetaMask.
+- Configura una red personalizada en MetaMask con estos parámetros:
+  - Nombre: Hardhat Local
+  - URL RPC: http://localhost:8545
+  - ID de Cadena: 1337
+  - Símbolo de Moneda: ETH
 
 ### Error al cargar la dirección del contrato
 
 - Asegúrate de que el contrato se haya desplegado correctamente.
 - Verifica que el archivo `web/contract-address.json` contenga la dirección correcta.
+- Comprueba que el nodo de Hardhat esté ejecutándose (`npm run node`).
 
 ### La transferencia falla
 
