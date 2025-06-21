@@ -170,15 +170,16 @@ Si encuentras errores 404 o no puedes acceder a la dApp, prueba estas soluciones
 - Verifica que estés en la red correcta en MetaMask.
 - Configura una red personalizada en MetaMask con estos parámetros:
   - Nombre: Hardhat Local
-  - URL RPC: http://localhost:8545
-  - ID de Cadena: 1337
+  - URL RPC: http://localhost:8545 (o http://127.0.0.1:8545)
+  - ID de Cadena: 31337
   - Símbolo de Moneda: ETH
 
 ### Error al cargar la dirección del contrato
 
-- Asegúrate de que el contrato se haya desplegado correctamente.
+- Asegúrate de que el contrato se haya desplegado correctamente ejecutando `npm run deploy`.
 - Verifica que el archivo `web/contract-address.json` contenga la dirección correcta.
 - Comprueba que el nodo de Hardhat esté ejecutándose (`npm run node`).
+- Abre la consola del navegador (F12 > Console) para ver mensajes de error detallados.
 
 ### La transferencia falla
 
