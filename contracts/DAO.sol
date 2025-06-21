@@ -514,4 +514,12 @@ contract DAO {
      * @dev Evento emitido cuando se compran tokens
      */
     event TokensPurchased(address indexed buyer, uint256 amount, uint256 cost);
+
+    /**
+     * @dev Función para recibir ETH directamente
+     * No realiza acciones específicas, solo permite que el contrato reciba ETH
+     */
+    receive() external payable {
+        // No hacemos nada, solo aceptamos el ETH
+    }
 }
