@@ -6,54 +6,98 @@ import "./Multisig.sol";
 import "./MultisigFactory.sol";
 
 /**
- * @title DAO
- * @dev Contrato principal de la Organización Autónoma Descentralizada (DAO)
- * Implementa staking, propuestas, votación cuadrática y delegación
+ * @title DAO - Organización Autónoma Descentralizada
+ * @author Obligatorio 2025 Team
+ * @notice Contrato principal que implementa un sistema de gobernanza descentralizada
+ * @dev Implementa un sistema completo de DAO con staking, propuestas, votación cuadrática 
+ * y delegación. Diseñado para el Conjunto A del Obligatorio 2025.
+ * @custom:security-contact admin@dao-obligatorio.com
  */
 contract DAO {
+    /// @notice Token de gobernanza utilizado para staking y votación
     MyToken public token;
     
-    // Contratos multisig para administración y emergencias
+    /// @notice Contrato multisig para operaciones administrativas
     address public ownerMultisig;
+    
+    /// @notice Contrato multisig para operaciones de emergencia
     address public panicMultisig;
+    
+    /// @notice Factory para crear contratos multisig
     MultisigFactory public multisigFactory;
 
+    /// @notice Indica si el sistema está pausado o no
+    /// @dev Inicialmente pausado hasta que se configure completamente
     bool public isPaused = true;
 
+    /// @notice Cantidad mínima de tokens necesarios para poder votar
     uint256 public stakingToVote;
+    
+    /// @notice Cantidad mínima de tokens necesarios para crear propuestas
     uint256 public stakingToPropose;
+    
+    /// @notice Tiempo mínimo en segundos que deben permanecer los tokens en staking
     uint256 public minStakingTime;
+    
+    /// @notice Divisor para ajustar el poder de voto cuadrático
     uint256 public votePowerDivider;
+    
+    /// @notice Duración en días del período de votación de propuestas
     uint256 public proposalDurationDays;
+    
+    /// @notice Precio en wei de cada token de gobernanza
     uint256 public tokenPriceInWei;
 
+    /**
+     * @notice Estructura para almacenar información de staking
+     * @dev Guarda tanto la cantidad de tokens en staking como el momento en que se realizó
+     */
     struct StakeInfo {
+        /// @notice Cantidad de tokens en staking
         uint256 amount;
+        
+        /// @notice Timestamp (en segundos) cuando se realizó el staking
         uint256 timestamp;
     }
 
+    /// @notice Mapeo de las direcciones a su información de staking para votar
     mapping(address => StakeInfo) public voteStakes;
+    
+    /// @notice Mapeo de las direcciones a su información de staking para proponer
     mapping(address => StakeInfo) public proposalStakes;
 
 
+    /**
+     * @notice Restringe funciones para que solo sean llamables por el multisig de propietario
+     * @dev Verifica que msg.sender sea el contrato de multifirma designado como owner
+     */
     modifier onlyOwner() {
         require(msg.sender == ownerMultisig, "Not owner");
         _;
     }
 
+    /**
+     * @notice Restringe funciones para que solo sean llamables por el multisig de emergencia
+     * @dev Verifica que msg.sender sea el contrato de multifirma designado para emergencias
+     */
     modifier onlyPanic() {
         require(msg.sender == panicMultisig, "Not panic multisig");
         _;
     }
 
+    /**
+     * @notice Restringe funciones para que solo se ejecuten cuando la DAO está activa
+     * @dev Verifica que el contrato no esté en estado pausado
+     */
     modifier daoActive() {
         require(!isPaused, "DAO is paused");
         _;
     }
 
     /**
-     * @dev Constructor que establece el token y crea la factory para multisig
-     * @param _tokenAddress Dirección del contrato de token
+     * @notice Inicializa el contrato DAO con el token de gobernanza y la fábrica de multisig
+     * @dev Establece el token ERC20 y crea una instancia de MultisigFactory
+     * @param _tokenAddress Dirección del contrato de token ERC20 para gobernanza
      */
     constructor(address _tokenAddress) {
         token = MyToken(_tokenAddress);
@@ -61,9 +105,11 @@ contract DAO {
     }
 
     /**
-     * @dev Crea un multisig para operaciones de propietario
+     * @notice Establece el multisig para operaciones administrativas
+     * @dev Crea un nuevo contrato Multisig para operaciones de propietario
      * @param owners Array de direcciones que serán propietarios del multisig
-     * @param requiredApprovals Número de aprobaciones necesarias
+     * @param requiredApprovals Número de aprobaciones necesarias para ejecutar transacciones
+     * @custom:requirement Solo puede establecerse una vez
      */
     function setOwnerMultisig(address[] memory owners, uint requiredApprovals) external {
         require(ownerMultisig == address(0), "Owner multisig already set");
@@ -71,9 +117,11 @@ contract DAO {
     }
 
     /**
-     * @dev Crea un multisig para operaciones de emergencia (panic button)
-     * @param owners Array de direcciones que serán propietarios del multisig
+     * @notice Establece el multisig para operaciones de emergencia
+     * @dev Crea un nuevo contrato Multisig para el botón de pánico (operaciones críticas)
+     * @param owners Array de direcciones que serán propietarios del multisig de emergencia
      * @param requiredApprovals Número de aprobaciones necesarias
+     * @custom:requirement Solo puede establecerse una vez y la DAO debe tener un owner multisig configurado
      */
     function setPanicMultisig(address[] memory owners, uint requiredApprovals) external onlyOwner {
         require(panicMultisig == address(0), "Panic multisig already set");
@@ -81,7 +129,11 @@ contract DAO {
     }
 
     /**
-     * @dev Método legacy para compatibilidad
+     * @notice Establece una dirección como owner (método de compatibilidad)
+     * @dev Método legacy que permite establecer una dirección simple como owner
+     * @param _owner La dirección que será establecida como owner
+     * @custom:legacy Este método existe por compatibilidad con versiones anteriores
+     * @custom:requirement Solo puede llamarse si aún no se ha establecido el owner multisig
      */
     function setOwner(address _owner) external {
         require(ownerMultisig == address(0), "Already set");
@@ -89,13 +141,29 @@ contract DAO {
     }
 
     /**
-     * @dev Método legacy para compatibilidad
+     * @notice Establece una dirección como wallet de pánico (método de compatibilidad)
+     * @dev Método legacy que permite establecer una dirección simple para operaciones de pánico
+     * @param _panicWallet La dirección que será establecida como wallet de pánico
+     * @custom:legacy Este método existe por compatibilidad con versiones anteriores
+     * @custom:requirement Solo puede ser llamado por el owner y la dirección no puede ser cero
      */
     function setPanicWallet(address _panicWallet) external onlyOwner {
         require(_panicWallet != address(0), "Invalid address");
         panicMultisig = _panicWallet;
     }
 
+    /**
+     * @notice Inicializa los parámetros operativos de la DAO
+     * @dev Establece todos los valores de configuración necesarios para el funcionamiento de la DAO
+     * @param _stakingToVote Cantidad mínima de tokens para poder votar
+     * @param _stakingToPropose Cantidad mínima de tokens para crear propuestas
+     * @param _minStakingTime Tiempo mínimo (en segundos) que deben permanecer los tokens en staking
+     * @param _votePowerDivider Divisor para ajustar el poder de voto cuadrático
+     * @param _proposalDurationDays Duración en días del período de votación de propuestas
+     * @param _tokenPriceInWei Precio en wei de cada token al comprar con ETH
+     * @custom:governance Estos parámetros son fundamentales para el funcionamiento del sistema y solo pueden 
+     * ser modificados por el multisig de propietario o propuestas de parámetros aprobadas
+     */
     function initParameters(
         uint256 _stakingToVote,
         uint256 _stakingToPropose,
@@ -112,15 +180,33 @@ contract DAO {
         tokenPriceInWei = _tokenPriceInWei;
     }
 
+    /**
+     * @notice Activa el modo de emergencia, pausando todas las operaciones de la DAO
+     * @dev Pausa la DAO para prevenir posibles ataques o vulnerabilidades
+     * @custom:security Esta función es crítica para la seguridad y solo puede ser llamada 
+     * por el multisig de propietario
+     * @custom:requirement El multisig de pánico debe estar configurado previamente
+     */
     function panic() external onlyOwner {
         require(panicMultisig != address(0), "Panic wallet not set");
         isPaused = true;
     }
 
+    /**
+     * @notice Desactiva el modo de emergencia, permitiendo que la DAO vuelva a operar
+     * @dev Solo puede ser llamada por el multisig de pánico, como medida de seguridad
+     */
     function tranquility() external onlyPanic {
         isPaused = false;
     }
 
+    /**
+     * @notice Permite a un usuario hacer staking de tokens para adquirir derecho a voto
+     * @dev Transfiere los tokens del usuario al contrato y registra la información de staking
+     * @param amount Cantidad de tokens a poner en staking
+     * @custom:requirement La DAO debe estar activa, el monto debe ser suficiente y el usuario
+     * no debe tener staking para voto actualmente
+     */
     function stakeForVote(uint256 amount) external daoActive {
         require(amount >= stakingToVote, "Insufficient staking amount");
         require(voteStakes[msg.sender].amount == 0, "Already staked");
@@ -129,6 +215,13 @@ contract DAO {
         voteStakes[msg.sender] = StakeInfo(amount, block.timestamp);
     }
 
+    /**
+     * @notice Permite a un usuario hacer staking de tokens para adquirir derecho a crear propuestas
+     * @dev Transfiere los tokens del usuario al contrato y registra la información de staking
+     * @param amount Cantidad de tokens a poner en staking
+     * @custom:requirement La DAO debe estar activa, el monto debe ser suficiente y el usuario
+     * no debe tener staking para propuestas actualmente
+     */
     function stakeForProposal(uint256 amount) external daoActive {
         require(amount >= stakingToPropose, "Insufficient staking amount");
         require(proposalStakes[msg.sender].amount == 0, "Already staked");
@@ -137,6 +230,11 @@ contract DAO {
         proposalStakes[msg.sender] = StakeInfo(amount, block.timestamp);
     }
 
+    /**
+     * @notice Permite a un usuario retirar tokens previamente puestos en staking para votar
+     * @dev Verifica el tiempo mínimo de staking, elimina el registro y transfiere los tokens de vuelta
+     * @custom:requirement El usuario debe tener tokens en staking y debe haber pasado el tiempo mínimo
+     */
     function unstakeVote() external {
         StakeInfo memory stake = voteStakes[msg.sender];
         require(stake.amount > 0, "No tokens staked");
@@ -146,6 +244,11 @@ contract DAO {
         token.transfer(msg.sender, stake.amount);
     }
 
+    /**
+     * @notice Permite a un usuario retirar tokens previamente puestos en staking para propuestas
+     * @dev Verifica el tiempo mínimo de staking, elimina el registro y transfiere los tokens de vuelta
+     * @custom:requirement El usuario debe tener tokens en staking y debe haber pasado el tiempo mínimo
+     */
     function unstakeProposal() external {
         StakeInfo memory stake = proposalStakes[msg.sender];
         require(stake.amount > 0, "No tokens staked");
@@ -155,36 +258,90 @@ contract DAO {
         token.transfer(msg.sender, stake.amount);
     }
 
+    /**
+     * @notice Enumeración de los diferentes tipos de propuestas disponibles
+     * @dev Los tipos determinan el comportamiento durante la ejecución de propuestas aprobadas
+     */
     enum ProposalType { 
-        Simple,       // Solo aprobación sin ejecución de código
-        Transaction,  // Ejecuta una transacción
-        ParameterChange, // Cambia parámetros del DAO
-        TokenMint     // Mintea nuevos tokens
+        /// @notice Propuesta simple sin acciones automáticas, solo registro de aprobación
+        Simple,
+        
+        /// @notice Propuesta que ejecuta una transacción arbitraria a otro contrato
+        Transaction,
+        
+        /// @notice Propuesta para cambiar parámetros del sistema DAO
+        ParameterChange,
+        
+        /// @notice Propuesta para acuñar nuevos tokens a una dirección específica
+        TokenMint
     }
 
+    /**
+     * @notice Estructura que almacena toda la información de una propuesta
+     * @dev Contiene campos comunes y específicos según el tipo de propuesta
+     */
     struct Proposal {
+        /// @notice Dirección que creó la propuesta
         address proposer;
+        
+        /// @notice Descripción textual de la propuesta
         string description;
+        
+        /// @notice Timestamp de creación (usado para calcular expiración)
         uint256 createdAt;
+        
+        /// @notice Votos cuadráticos a favor de la propuesta
         uint256 votesFor;
+        
+        /// @notice Votos cuadráticos en contra de la propuesta
         uint256 votesAgainst;
+        
+        /// @notice Indica si la propuesta ya fue ejecutada
         bool executed;
+        
+        /// @notice Tipo de propuesta (determina qué campos específicos se utilizan)
         ProposalType proposalType;
-        // Para propuestas de tipo Transaction
+        
+        // Campos para propuestas de tipo Transaction
+        /// @notice Dirección destino de la transacción (para tipo Transaction)
         address transactionTarget;
+        
+        /// @notice Datos codificados para la llamada (para tipo Transaction)
         bytes transactionData;
+        
+        /// @notice Cantidad de ETH a enviar (para tipo Transaction)
         uint transactionValue;
-        // Para propuestas de tipo ParameterChange
+        
+        /// @notice Nombre del parámetro a cambiar (para tipo ParameterChange)
         string paramName;
+        
+        /// @notice Nuevo valor para el parámetro (para tipo ParameterChange)
         uint paramValue;
-        // Para propuestas de tipo TokenMint
+        
+        /// @notice Dirección que recibirá los tokens (para tipo TokenMint)
         address mintTo;
+        
+        /// @notice Cantidad de tokens a acuñar (para tipo TokenMint)
         uint mintAmount;
     }   
 
+    /// @notice Array que almacena todas las propuestas creadas en la DAO
     Proposal[] public proposals;
 
+    /**
+     * @notice Emitido cuando se crea una nueva propuesta
+     * @param proposalId ID único de la propuesta creada
+     * @param proposer Dirección del creador de la propuesta
+     * @param description Descripción de la propuesta
+     * @param proposalType Tipo de la propuesta creada
+     */
     event ProposalCreated(uint256 indexed proposalId, address indexed proposer, string description, ProposalType proposalType);
+    
+    /**
+     * @notice Emitido cuando una propuesta aprobada es ejecutada
+     * @param proposalId ID de la propuesta ejecutada
+     * @param success Indica si la ejecución fue exitosa
+     */
     event ProposalExecuted(uint256 indexed proposalId, bool success);
 
     /**
@@ -514,4 +671,12 @@ contract DAO {
      * @dev Evento emitido cuando se compran tokens
      */
     event TokensPurchased(address indexed buyer, uint256 amount, uint256 cost);
+
+    /**
+     * @dev Función para recibir ETH directamente
+     * No realiza acciones específicas, solo permite que el contrato reciba ETH
+     */
+    receive() external payable {
+        // No hacemos nada, solo aceptamos el ETH
+    }
 }

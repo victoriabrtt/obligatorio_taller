@@ -11,7 +11,7 @@ describe("DAO - Propuestas", function () {
     const Token = await ethers.getContractFactory("MyToken");
     token = await Token.deploy();
 
-    const DAO = await ethers.getContractFactory("DAO");
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     dao = await DAO.deploy(await token.getAddress());
 
     // Seteo inicial
@@ -58,12 +58,10 @@ describe("DAO - Propuestas", function () {
     const receipt = await tx.wait();
     const proposalId = receipt.logs[0].args.proposalId;
   
-    const power = await dao.sqrt(10000);
-  
     await dao.connect(user).voteProposal(proposalId, true);
   
     const proposal = await dao.proposals(proposalId);
-    expect(proposal.votesFor).to.equal(power);
+    expect(proposal.votesFor).to.equal(100);
   });  
   
 

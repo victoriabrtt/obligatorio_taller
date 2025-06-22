@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/contracts/Deploy.sol": {
-      "lastModificationDate": 1750333330588,
+      "lastModificationDate": 1750333763919,
       "contentHash": "b9ffde1af4f1a702c6ee9490a0810dc8",
       "sourceName": "contracts/Deploy.sol",
       "solcConfig": {
@@ -42,7 +42,7 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/contracts/OrtToken.sol": {
-      "lastModificationDate": 1750332047870,
+      "lastModificationDate": 1750333764173,
       "contentHash": "919ac68e7f7ef059189ed7b637ece290",
       "sourceName": "contracts/OrtToken.sol",
       "solcConfig": {
@@ -80,8 +80,8 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/contracts/StakeForNFT.sol": {
-      "lastModificationDate": 1750333259280,
-      "contentHash": "73918e0d38d43f64a02cbeca9dd1d960",
+      "lastModificationDate": 1750535232707,
+      "contentHash": "12320fbf6f27f7f22e6dd4b50a9813bb",
       "sourceName": "contracts/StakeForNFT.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -119,8 +119,8 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/contracts/UyArt.sol": {
-      "lastModificationDate": 1750333375484,
-      "contentHash": "039b2e00727f5afb85d97f0184bdb95f",
+      "lastModificationDate": 1750535207424,
+      "contentHash": "d05de626d7e1dc369013c47526cedfac",
       "sourceName": "contracts/UyArt.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -155,7 +155,7 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
-      "lastModificationDate": 1750332793383,
+      "lastModificationDate": 1750333981158,
       "contentHash": "57d79df281f57bbb1b09214c7914f877",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
@@ -196,7 +196,7 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
-      "lastModificationDate": 1750332779782,
+      "lastModificationDate": 1750333475630,
       "contentHash": "267d92fe4de67b1bdb3302c08f387dbf",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -234,7 +234,7 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1750332779805,
+      "lastModificationDate": 1750333475516,
       "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -270,7 +270,7 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1750332793382,
+      "lastModificationDate": 1750333980842,
       "contentHash": "8f19f64d2adadf448840908bbaf431c8",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
@@ -306,7 +306,7 @@
       ]
     },
     "/Users/juancortabarria/Documents/TallerObligatorio/obligatorio_taller/Trabajo1/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
-      "lastModificationDate": 1750332801102,
+      "lastModificationDate": 1750334241187,
       "contentHash": "794db3115001aa372c79326fcfd44b1f",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {

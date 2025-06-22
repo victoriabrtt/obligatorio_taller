@@ -117,11 +117,26 @@ contract StakeForNFT {
     
     /**
      * @dev Funcion para generar metadatos para el NFT
+     * En una implementación real estos metadatos estarían en IPFS
+     * Para este ejercicio, generamos una URI única que podría ser parseada por un frontend
+     * Format: ipfs://{tokenId}_{userAddress}_{index}
      */
     function generateMetadata(address user, uint256 index) private pure returns (string memory) {
-        // En una implementacion real, generarias un JSON estructurado y lo subirias a IPFS
-        // Para esta implementacion, simplemente creamos un string unico
-        return string(abi.encodePacked("UyArt_", toHexString(user), "_", uint2str(index)));
+        // Generamos un string simulando un CID de IPFS seguido de metadatos
+        // En un caso real, esto sería un hash real de IPFS que apuntaría a un JSON 
+        // con los metadatos del NFT (imagen, nombre, atributos)
+        string memory baseURI = "ipfs://QmUyArtCollection/";
+        string memory uniqueId = string(abi.encodePacked(toHexString(user), "_", uint2str(index)));
+        
+        // Un NFT con metadata correcta tendría un JSON similar a:
+        // {
+        //   "name": "Uruguay Art #X",
+        //   "description": "Arte de la colección Uruguay",
+        //   "image": "ipfs://QmImageHash/X.jpg",
+        //   "attributes": [{"trait_type": "Artist", "value": "Artist Name"}, ...]
+        // }
+        
+        return string(abi.encodePacked(baseURI, uniqueId));
     }
     
     /**

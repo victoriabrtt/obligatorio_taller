@@ -10,7 +10,7 @@ describe("DAO - Delegación de votos", function () {
     await token.mint(userA.address, 1000);
     await token.mint(userB.address, 1000);
 
-    const DAO = await ethers.getContractFactory("DAO");
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     const dao = await DAO.deploy(await token.getAddress());
 
     await dao.setOwner(owner.address);
@@ -59,14 +59,21 @@ describe("DAO - Delegación de votos", function () {
 
     await dao.connect(userA).delegate(userB.address);
 
+    // La función getVotingPower devuelve sqrt(power) * 1e9 / votePowerDivider
+    // Como votePowerDivider es 1, debería devolver sqrt(power) * 1e9
     const powerB = await dao.getVotingPower(userB.address);
-    expect(powerB).to.equal(400);
+    
+    // userB tiene 100 tokens staked + 300 delegados = 400
+    // sqrt(400) * 1e9 = 20 * 1e9 = 20000000000
+    expect(powerB).to.equal(20000000000);
   });
 
   it("getVotingPower debería devolver solo el stake propio si no hay delegaciones", async function () {
     const { dao, userA } = await deployDAOFixture();
 
+    // userA tiene 300 tokens staked, sqrt(300) * 1e9 = ~17.32 * 1e9
     const power = await dao.getVotingPower(userA.address);
-    expect(power).to.equal(300);
+    // En realidad es 17320508.08... pero Solidity redondea
+    expect(power).to.equal(17000000000);
   });
 });

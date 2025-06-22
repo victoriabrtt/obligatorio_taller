@@ -3,6 +3,9 @@ const { ethers } = require("hardhat");
 async function main() {
   const targetAddress = "0x86BF80dC22E5ED99596C0443429a59670f47ea64";
   
+  console.log("VERIFICANDO FONDOS PARA:", targetAddress);
+  console.log("===========================================");
+  
   // Verificar la configuración de la red
   const provider = ethers.provider;
   const network = await provider.getNetwork();
@@ -40,7 +43,7 @@ async function main() {
       console.log("\nIntentando transferir ETH nuevamente...");
       const tx = await accounts[0].sendTransaction({
         to: targetAddress,
-        value: ethers.parseEther("3.0") // Enviar 3 ETH para estar seguros
+        value: ethers.parseEther("10.0") // Enviar 10 ETH para estar seguros
       });
       
       console.log(`Transacción enviada: ${tx.hash}`);

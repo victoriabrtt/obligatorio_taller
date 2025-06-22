@@ -19,3 +19,9 @@ ignition/deployments/chain-31337
 # macOS
 .DS_Store
 EjemplosClase/.DS_Store
+
+# Legacy documentation files (migrated to docs/)
+/DAO-IMPROVEMENTS.md
+/UPGRADE-PLAN.md
+/FRONTEND-IMPROVEMENTS.md
+/FINAL-REPORT.md

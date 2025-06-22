@@ -11,7 +11,7 @@ describe("DAO - Staking", function () {
     const Token = await ethers.getContractFactory("MyToken");
     token = await Token.deploy();
 
-    const DAO = await ethers.getContractFactory("DAO");
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     dao = await DAO.deploy(await token.getAddress());
 
     // Set owner y pánico

@@ -1,79 +1,139 @@
-# Obligatorio Taller DAO (Conjunto A)
+# DAO Governance System - Obligatorio 2025
 
-Este proyecto implementa una aplicación de DAO (Organización Autónoma Descentralizada) con votación cuadrática y delegación por propuesta, tal como se solicita en el Conjunto A de la consigna.
+## Overview
 
-## Estructura del Proyecto
+This project implements a Decentralized Autonomous Organization (DAO) governance system with quadratic voting and multi-level delegation capabilities. The system allows token holders to create and vote on proposals, delegate voting power, and participate in decentralized governance.
 
-- `/contracts`: Smart contracts de la DAO, incluyendo el principal (`DAO.sol`) y el token (`MyToken.sol`)
-- `/scripts`: Scripts para desplegar los contratos
-- `/test`: Tests para los contratos
-- `/frontend/dao-frontend`: Aplicación frontend React para interactuar con la DAO
+## Project Structure
 
-## Características (Conjunto A)
+```
+obligatorio_taller/
+├── contracts/                  # Smart contracts
+│   ├── DAO.sol                 # Original DAO implementation
+│   ├── DAO_update.sol          # Improved DAO implementation
+│   ├── Lock.sol                # Simple locking contract
+│   ├── Multisig.sol            # Multi-signature wallet
+│   ├── MultisigFactory.sol     # Factory for creating Multisig contracts
+│   └── MyToken.sol             # Governance token
+├── test/                       # Test files
+│   ├── DAO.delegation.test.js  # Tests for delegation functionality
+│   ├── DAO.multisig.test.js    # Tests for multisig integration
+│   ├── DAO.proposals.test.js   # Tests for proposal functionality
+│   ├── DAO.staking.test.js     # Tests for staking functionality
+│   ├── DAO.voting.test.js      # Tests for voting functionality
+│   ├── DAO.quadraticVoting.test.js  # Tests for quadratic voting edge cases
+│   ├── DAO.multiLevelDelegation.test.js  # Tests for multi-level delegation
+│   ├── DAO.proposals.edgecases.test.js  # Tests for proposal edge cases
+│   ├── DAO_update.verification.test.js  # Verification tests for DAO_update
+│   ├── DAO_update.full.test.js  # Comprehensive tests for DAO_update
+│   ├── Lock.test.js            # Tests for Lock contract
+│   ├── Multisig.test.js        # Tests for Multisig contract
+│   └── REPORT.md               # Report of findings and recommendations
+├── scripts/                    # Deployment and utility scripts
+│   ├── deploy_dao.js           # DAO deployment script
+│   ├── deploy_dao_with_funds.js # DAO deployment with initial funding
+│   └── ...                     # Other utility scripts
+├── frontend/                   # Frontend components
+│   └── dao-frontend/           # React frontend for the DAO
+├── DAO-IMPROVEMENTS.md         # Detailed documentation of improvements
+├── UPGRADE-PLAN.md             # Plan for upgrading to the new system
+├── FINAL-REPORT.md             # Summary of project achievements
+└── hardhat.config.js           # Hardhat configuration
+```
 
-- **Votación Cuadrática**: El poder de voto se calcula como la raíz cuadrada de la cantidad de tokens en stake
-- **Delegación por Propuesta**: Los usuarios pueden delegar su voto a otra dirección para propuestas específicas
-- **Staking**: Separado para votar y crear propuestas
-- **Propuestas**: Creación, votación y ejecución de propuestas
-- **Compra de Tokens**: Funcionalidad para comprar tokens con ETH
-- **Panic/Tranquilidad**: Implementación de contratos multisig para dueño y pánico
+## Features
 
-## Páginas Frontend
+- **Quadratic Voting**: Voting power scales as the square root of tokens, balancing influence
+- **Multi-level Delegation**: Transfer voting power through unlimited delegation chains
+- **Proposal Management**: Create, vote on, and execute proposals
+- **Security Controls**: Emergency pause, multisig ownership, and voting restrictions
+- **Token Integration**: Governance token with staking for voting and proposal creation
 
-- **Lista de Propuestas** (`/proposals`): Visualización de todas las propuestas con filtros
-- **Detalle de Propuesta** (`/proposals/:id`): Ver detalles, votar y delegar por propuesta
-- **Crear Propuesta** (`/proposals/create`): Formulario para crear nuevas propuestas
-- **Staking & Tokens** (`/staking`): Gestión de staking para votar/proponer y compra de tokens
+## Key Improvements
 
-## Instalación y Ejecución
+The project includes significant improvements to the original DAO system:
 
-### Backend (Contratos)
+1. **Enhanced Delegation System**:
+   - Multi-level delegation chain resolution
+   - Circular delegation prevention
+   - Separation of general and proposal-specific delegation
 
-1. Instalar dependencias:
-   ```
-   npm install
-   ```
+2. **Voting System Enhancements**:
+   - Improved quadratic voting implementation
+   - Enhanced voting period validation
+   - Prevention of double voting (after delegation)
 
-2. Compilar contratos:
-   ```
-   npx hardhat compile
-   ```
+3. **Documentation**:
+   - Comprehensive NatSpec documentation
+   - Detailed technical documentation
+   - Upgrade plan and implementation guide
 
-3. Ejecutar tests:
-   ```
-   npx hardhat test
-   ```
+4. **Testing**:
+   - Expanded test coverage for edge cases
+   - Specific test suites for quadratic voting and delegation
+   - Verification tests for improvements
 
-4. Desplegar contratos localmente (requiere nodo Hardhat en ejecución):
-   ```
-   npx hardhat node
-   npx hardhat run scripts/deploy_dao.js --network localhost
-   ```
+## Getting Started
 
-### Frontend
+### Prerequisites
 
-1. Navegar al directorio frontend:
-   ```
-   cd frontend/dao-frontend
-   ```
+- Node.js v16+
+- npm or yarn
+- Hardhat
 
-2. Instalar dependencias:
-   ```
-   npm install
-   ```
+### Installation
 
-3. Configurar direcciones de contratos:
-   - Editar `src/contracts/contracts.ts` con las direcciones correctas después del despliegue
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd obligatorio_taller
+```
 
-4. Iniciar aplicación:
-   ```
-   npm start
-   ```
+2. Install dependencies
+```bash
+npm install
+```
 
-## Tests
+3. Compile contracts
+```bash
+npx hardhat compile
+```
 
-Los tests cubren todas las funcionalidades requeridas:
-- Staking
-- Delegación
-- Votación Cuadrática
-- Propuestas
+4. Run tests
+```bash
+npx hardhat test
+```
+
+5. Deploy locally
+```bash
+npx hardhat node
+npx hardhat run scripts/deploy_dao.js --network localhost
+```
+
+## Frontend
+
+The frontend application provides a user interface for the DAO system. To run it:
+
+```bash
+cd frontend/dao-frontend
+npm install
+npm start
+```
+
+Visit `http://localhost:3000` to access the application.
+
+## Documentation
+
+All project documentation is located in the `docs/` folder:
+
+- [docs/TECHNICAL_DOCUMENTATION.md](./docs/TECHNICAL_DOCUMENTATION.md): Technical details of the system
+- [docs/IMPROVEMENTS.md](./docs/IMPROVEMENTS.md): Detailed documentation of improvements
+- [docs/UPGRADE_PLAN.md](./docs/UPGRADE_PLAN.md): Plan for upgrading to the new system
+- [docs/FINAL_REPORT.md](./docs/FINAL_REPORT.md): Project summary and achievements
+- [docs/FRONTEND_IMPROVEMENTS.md](./docs/FRONTEND_IMPROVEMENTS.md): Frontend UX improvements
+- [docs/ALL_DOCS.md](./docs/ALL_DOCS.md): Complete list of documentation files
+- [test/REPORT.md](./test/REPORT.md): Testing report with findings
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

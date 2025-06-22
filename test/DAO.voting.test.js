@@ -9,7 +9,7 @@ async function deployDAOFixture() {
     const token = await Token.deploy();
     await token.waitForDeployment();
   
-    const DAO = await ethers.getContractFactory("DAO");
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     const dao = await DAO.deploy(await token.getAddress());
   
     await dao.setOwner(owner.address);
@@ -41,7 +41,7 @@ describe("DAO - Votación y Ejecución de Propuestas", function () {
     await token.waitForDeployment();
 
     // Desplegar la DAO
-    const DAO = await ethers.getContractFactory("DAO");
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     dao = await DAO.deploy(await token.getAddress());
 
     // Setup inicial
