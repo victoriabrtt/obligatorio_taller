@@ -120,6 +120,11 @@ export class DAOService {
     
     try {
       console.log("Buying tokens:", amount);
+      // Asegurarse de que amount es un número
+      if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        throw new Error("La cantidad debe ser un número mayor que cero");
+      }
+      
       const amountWei = ethers.parseUnits(amount, 18);
       
       // Comprobación detallada del contrato
@@ -135,71 +140,31 @@ export class DAOService {
       const balance = await this.provider?.getBalance(address!);
       console.log("Current wallet balance:", ethers.formatEther(balance || 0), "ETH");
       
-      console.log("DAO contract address:", await this.daoContract.getAddress());
+      // Obtener el precio directamente del contrato
+      const tokenPrice = await this.getTokenPrice();
+      console.log("Token price:", ethers.formatEther(tokenPrice), "ETH");
       
-      // Imprimir información sobre el contrato y redes
-      const network = await this.provider?.getNetwork();
-      console.log("Connected network:", network?.name, "chainId:", network?.chainId);
+      // Calcular el costo total en ETH
+      const tokenPriceBigInt = BigInt(tokenPrice);
+      const totalCost = (amountWei * tokenPriceBigInt) / BigInt(10**18);
+      console.log("Total cost:", ethers.formatEther(totalCost), "ETH for", amount, "tokens");
       
-      // Obtener el precio real del token desde el contrato
-      try {
-        const tokenPriceFromContract = await this.daoContract.tokenPriceInWei();
-        console.log("Token price from contract:", ethers.formatEther(tokenPriceFromContract), "ETH");
-        
-        // Calcular el costo total en ETH usando el precio del contrato
-        // La fórmula es: (cantidad * precio) / 10^18
-        const totalCost = (amountWei * tokenPriceFromContract) / BigInt(10**18);
-        console.log("Total ETH cost (from contract price):", ethers.formatEther(totalCost), "ETH for", amount, "tokens");
-        
-        // Verificar si hay suficientes fondos
-        if (balance && balance < totalCost) {
-          throw new Error(`Fondos insuficientes. Se necesitan ${ethers.formatEther(totalCost)} ETH pero solo tienes ${ethers.formatEther(balance)} ETH.`);
-        }
-        
-        // Añadir un pequeño margen para asegurarse de que hay suficiente ETH
-        const totalCostWithMargin = totalCost * BigInt(101) / BigInt(100); // 1% extra
-        
-        console.log("Sending transaction with value:", ethers.formatEther(totalCostWithMargin), "ETH");
-        
-        // Usar un límite de gas generoso para la red local
-        const tx = await this.daoContract!.buyTokens(amountWei, {
-          value: totalCostWithMargin,
-          gasLimit: 300000
-        });
-        
-        console.log("Transaction sent:", tx.hash);
-        return tx;
-      } catch (priceError) {
-        // Si hay un error al obtener el precio del contrato, usar el valor fijo
-        console.warn("Error getting token price from contract, using fixed price:", priceError);
-        
-        // Usar un precio fijo como respaldo
-        const tokenPrice = ethers.parseUnits("0.01", 18); // 0.01 ETH por token
-        console.log("Using fixed token price:", ethers.formatEther(tokenPrice), "ETH");
-        
-        // Calcular el costo total en ETH
-        const totalEthCost = (amountWei * tokenPrice) / BigInt(10**18);
-        console.log("Total ETH cost:", ethers.formatEther(totalEthCost), "for", amount, "tokens");
-        
-        // Verificar si hay suficientes fondos
-        if (balance && balance < totalEthCost) {
-          throw new Error(`Fondos insuficientes. Se necesitan ${ethers.formatEther(totalEthCost)} ETH pero solo tienes ${ethers.formatEther(balance)} ETH.`);
-        }
-        
-        // Añadir un pequeño margen para asegurarse de que hay suficiente ETH
-        const totalCostWithMargin = totalEthCost * BigInt(101) / BigInt(100); // 1% extra
-        
-        console.log("Sending transaction with value:", ethers.formatEther(totalCostWithMargin), "ETH");
-        
-        // Usar un límite de gas generoso para la red local
-        const tx = await this.daoContract!.buyTokens(amountWei, {
-          value: totalCostWithMargin,
-          gasLimit: 300000
-        });
-        
-        console.log("Transaction sent:", tx.hash);
-        return tx;
+      // Verificar si hay suficientes fondos
+      if (balance && balance < totalCost) {
+        throw new Error(`Fondos insuficientes. Se necesitan ${ethers.formatEther(totalCost)} ETH pero solo tienes ${ethers.formatEther(balance)} ETH.`);
       }
+      
+      // Usar exactamente el costo calculado sin margen adicional
+      console.log("Sending transaction with value:", ethers.formatEther(totalCost), "ETH");
+      
+      // Usar un límite de gas más razonable para la red local
+      const tx = await this.daoContract!.buyTokens(amountWei, {
+        value: totalCost,
+        gasLimit: 200000
+      });
+      
+      console.log("Transaction sent:", tx.hash);
+      return tx;
     } catch (err) {
       console.error("Error in buyTokens:", err);
       throw err;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
 import { 
   Box, Button, Flex, Heading, Stack, Text, Input, Spacer,
   Tabs, TabList, Tab, TabPanels, TabPanel,
@@ -55,21 +56,21 @@ const StakingPage: React.FC = () => {
 
   // Calculamos el costo estimado en ETH de la compra de tokens
   const calculateEthCost = (): string => {
-    if (!buyAmount || isNaN(Number(buyAmount)) || !tokenPriceInWei) {
+    if (!buyAmount || isNaN(Number(buyAmount)) || Number(buyAmount) <= 0 || !tokenPriceInWei) {
       return '0';
     }
     
     // Si el precio del token es 0 o undefined, asumimos 0.01 ETH como valor predeterminado
     const priceToUse = tokenPriceInWei === '0' ? '10000000000000000' : tokenPriceInWei;
     
-    // Convertir a BigInt para cálculos precisos
+    // Usar ethers para cálculos precisos
     try {
-      const amountWei = BigInt(Math.floor(Number(buyAmount) * 10**18));
+      const amountWei = ethers.parseUnits(buyAmount, 18);
       const price = BigInt(priceToUse);
       const cost = (amountWei * price) / BigInt(10**18);
       
-      // Convertir a string y formatear para mostrar en ETH
-      return (Number(cost) / 10**18).toFixed(6);
+      // Formatear el resultado con ethers para mejor precisión
+      return ethers.formatEther(cost);
     } catch (e) {
       console.error("Error en cálculo:", e);
       return '0';
@@ -219,9 +220,16 @@ const StakingPage: React.FC = () => {
                       type="number"
                       mb={3}
                     />
-                    <Text fontSize="sm" mb={3}>
-                      Costo estimado: {calculateEthCost()} ETH
+                    <Text fontSize="sm" mb={1}>
+                      Precio por token: {tokenPriceInWei ? ethers.formatEther(tokenPriceInWei) : '0.01'} ETH
                     </Text>
+                    <Text fontSize="sm" fontWeight="bold" mb={3}>
+                      Costo total: {calculateEthCost()} ETH
+                    </Text>
+                    <Alert status="info" mb={3} size="sm">
+                      <AlertIcon />
+                      Asegúrate de tener suficiente ETH en tu wallet y de confirmar la transacción en MetaMask.
+                    </Alert>
                     <Button 
                       colorScheme="green" 
                       onClick={handleBuyTokens}

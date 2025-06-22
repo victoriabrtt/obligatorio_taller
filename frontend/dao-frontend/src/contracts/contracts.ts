@@ -2,10 +2,10 @@
 // Estas son las direcciones de los contratos desplegados localmente
 export const CONTRACTS = {
     DAO: {
-        address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", // Dirección obtenida del último despliegue
+        address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016", // Dirección obtenida del último despliegue
     },
     TOKEN: {
-        address: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Dirección obtenida del último despliegue
+        address: "0x9A676e781A523b5d0C0e43731313A708CB607508", // Dirección obtenida del último despliegue
     },
     MULTISIG: {
         address: "0xAe367415f4BDe0aDEE3e59C35221d259f517413E", // Dirección del Owner multisig
