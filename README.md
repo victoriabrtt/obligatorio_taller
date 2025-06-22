@@ -124,9 +124,14 @@ Visit `http://localhost:3000` to access the application.
 
 ## Documentation
 
-- [DAO-IMPROVEMENTS.md](./DAO-IMPROVEMENTS.md): Detailed documentation of improvements
-- [UPGRADE-PLAN.md](./UPGRADE-PLAN.md): Plan for upgrading to the new system
-- [FINAL-REPORT.md](./FINAL-REPORT.md): Project summary and achievements
+All project documentation is located in the `docs/` folder:
+
+- [docs/TECHNICAL_DOCUMENTATION.md](./docs/TECHNICAL_DOCUMENTATION.md): Technical details of the system
+- [docs/IMPROVEMENTS.md](./docs/IMPROVEMENTS.md): Detailed documentation of improvements
+- [docs/UPGRADE_PLAN.md](./docs/UPGRADE_PLAN.md): Plan for upgrading to the new system
+- [docs/FINAL_REPORT.md](./docs/FINAL_REPORT.md): Project summary and achievements
+- [docs/FRONTEND_IMPROVEMENTS.md](./docs/FRONTEND_IMPROVEMENTS.md): Frontend UX improvements
+- [docs/ALL_DOCS.md](./docs/ALL_DOCS.md): Complete list of documentation files
 - [test/REPORT.md](./test/REPORT.md): Testing report with findings
 
 ## License

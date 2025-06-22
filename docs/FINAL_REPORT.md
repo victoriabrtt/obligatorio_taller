@@ -38,10 +38,10 @@ This report summarizes the improvements made to the system, the testing performe
   - System security features
 
 ### 5. Technical Documentation
-- Created detailed documentation of improvements (DAO-IMPROVEMENTS.md)
-- Developed upgrade plan for system migration (UPGRADE-PLAN.md)
+- Created detailed documentation of improvements (docs/IMPROVEMENTS.md)
+- Developed upgrade plan for system migration (docs/UPGRADE_PLAN.md)
 - Documented findings and recommendations (test/REPORT.md)
-- Updated frontend documentation for improved user experience
+- Updated frontend documentation for improved user experience (docs/FRONTEND_IMPROVEMENTS.md)
 
 ## Testing Results
 
@@ -103,10 +103,3 @@ While the current implementation significantly improves the system, we recommend
 The improved DAO system now provides a robust foundation for decentralized governance. It correctly implements quadratic voting, handles complex delegation scenarios, and has been thoroughly tested against edge cases. The enhanced documentation and developer tools make it easier to integrate and extend the system.
 
 These improvements align with the requirements of the Obligatorio 2025 project and address all the identified issues while maintaining compatibility with existing systems.
-
----
-
-Submitted by:
-GitHub Copilot
-
-Date: June 21, 2025

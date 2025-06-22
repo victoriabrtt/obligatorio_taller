@@ -1,38 +1,30 @@
-# DAO - Sistema de Gobernanza Descentralizada
+# DAO System Documentation
 
-Este proyecto implementa un sistema de gobernanza basado en DAO (Organización Autónoma Descentralizada) utilizando tokens ERC-20 para representar el poder de voto dentro de la organización.
+This folder contains comprehensive documentation for the DAO Governance System (Obligatorio 2025).
 
-## Características principales
+## Main Documentation Files
 
-- **Gobernanza mediante DAO** con tokens ERC-20 que representan poder de voto
-- **Multisig para Owner** con capacidad de mintear tokens, cambiar parámetros y transferir propiedad
-- **Multisig de Pánico** para seguridad del sistema
-- **Sistema de Staking** para votar y crear propuestas
-- **Votación cuadrática** donde el poder de voto escala como la raíz cuadrada de los tokens
-- **Delegación de voto** para propuestas específicas
-- **Frontend completo** para interactuar con la DAO
+### Technical Documentation
 
-## Estructura del proyecto
+- [TECHNICAL_DOCUMENTATION.md](./TECHNICAL_DOCUMENTATION.md) - System architecture and technical details
+- [IMPROVEMENTS.md](./IMPROVEMENTS.md) - Detailed documentation of all improvements
+- [UPGRADE_PLAN.md](./UPGRADE_PLAN.md) - Plan for upgrading to the new system
+- [FRONTEND_IMPROVEMENTS.md](./FRONTEND_IMPROVEMENTS.md) - Frontend UX improvements
+- [FINAL_REPORT.md](./FINAL_REPORT.md) - Project summary and achievements
+- [CONJUNTO_A_DOCUMENTATION.md](./CONJUNTO_A_DOCUMENTATION.md) - Details on quadratic voting and delegation
 
-```
-obligatorio_taller/
-├── contracts/           # Contratos inteligentes
-│   ├── DAO.sol          # Contrato principal de la DAO
-│   ├── MyToken.sol      # Token ERC-20 para votación
-│   ├── Multisig.sol     # Contrato multifirma
-│   └── MultisigFactory.sol  # Fábrica de contratos multifirma
-├── scripts/             # Scripts para despliegue y gestión
-│   ├── deployment/      # Scripts de despliegue
-│   ├── tokens/          # Scripts para gestión de tokens
-│   ├── tools/           # Herramientas para interacción
-│   ├── verification/    # Scripts de verificación
-│   └── utils/           # Scripts de utilidad
-├── test/                # Tests unitarios
-├── frontend/            # Aplicación frontend
-│   └── dao-frontend/    # Frontend en React
-├── deployments/         # Información de despliegues
-└── docs/                # Documentación adicional
-```
+### User Guides
+
+- [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Guide for deploying the system
+- [EXECUTION_GUIDE.md](./EXECUTION_GUIDE.md) - Guide for executing and running the system
+- [FUNDS_TRANSFER_GUIDE.md](./FUNDS_TRANSFER_GUIDE.md) - Guide for transferring funds
+- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - Solutions for common issues
+
+## Documentation Index
+
+For a complete list and organization of all documentation, see:
+- [ALL_DOCS.md](./ALL_DOCS.md) - Complete list of documentation files
+- [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md) - Thematic index of documentation
 
 ## Requisitos
 

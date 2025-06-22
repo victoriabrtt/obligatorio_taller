@@ -432,7 +432,149 @@ export class DAOService {
   // Obtiene la dirección a la que el usuario ha delegado sus votos
   async getCurrentDelegate(): Promise<string> {
     this.ensureConnected();
-    return await this.daoContract!.delegates(this.address);
+    return await this.daoContract!.delegatedTo(this.address || '0x0000000000000000000000000000000000000000');
+  }
+  
+  // Obtiene el delegado efectivo siguiendo la cadena de delegación
+  async getEffectiveDelegate(address: string): Promise<string> {
+    this.ensureConnected();
+    return await this.daoContract!.getEffectiveDelegate(address);
+  }
+  
+  // Obtiene el delegado efectivo para una propuesta específica
+  async getEffectiveDelegateForProposal(proposalId: number, address: string): Promise<string> {
+    this.ensureConnected();
+    return await this.daoContract!.getEffectiveDelegateForProposal(proposalId, address);
+  }
+  
+  // Obtiene las direcciones que han delegado a este usuario
+  async getDelegators(delegate: string): Promise<string[]> {
+    this.ensureConnected();
+    try {
+      // Emular esta funcionalidad si el contrato no la soporta
+      // En un entorno real, el contrato debería tener esta funcionalidad
+      const delegators: string[] = [];
+      // Limitamos a los últimos 100 bloques para evitar búsquedas excesivas
+      const filter = this.daoContract!.filters.DelegationChanged(null, delegate);
+      const events = await this.daoContract!.queryFilter(filter, -100, 'latest');
+      
+      // Extraer direcciones únicas de los eventos
+      const uniqueDelegators = new Map<string, boolean>();
+      events.forEach(event => {
+        // Necesitamos verificar si es un EventLog para acceder a los args
+        if ('args' in event && event.args && event.args[0]) {
+          uniqueDelegators.set(event.args[0], true);
+        }
+      });
+      
+      // Verificar que cada dirección aún tiene esta dirección como delegado
+      const potentialDelegators = Array.from(uniqueDelegators.keys());
+      for (let i = 0; i < potentialDelegators.length; i++) {
+        const potentialDelegator = potentialDelegators[i];
+        const currentDelegate = await this.daoContract!.delegatedTo(potentialDelegator);
+        if (currentDelegate.toLowerCase() === delegate.toLowerCase()) {
+          delegators.push(potentialDelegator);
+        }
+      }
+      
+      return delegators;
+    } catch (error) {
+      console.error("Error obteniendo delegadores:", error);
+      return [];
+    }
+  }
+  
+  // Obtiene las direcciones que han delegado a este usuario para una propuesta específica
+  async getDelegatorsForProposal(proposalId: number, delegate: string): Promise<string[]> {
+    this.ensureConnected();
+    try {
+      // Emular esta funcionalidad si el contrato no la soporta
+      const delegators: string[] = [];
+      
+      // Limitamos a los últimos 100 bloques para evitar búsquedas excesivas
+      const filter = this.daoContract!.filters.ProposalDelegationChanged(proposalId, null, delegate);
+      const events = await this.daoContract!.queryFilter(filter, -100, 'latest');
+      
+      // Extraer direcciones únicas de los eventos
+      const uniqueDelegators = new Map<string, boolean>();
+      events.forEach(event => {
+        // Verificar si es un EventLog para acceder a los args
+        if ('args' in event && event.args && event.args[1]) {
+          uniqueDelegators.set(event.args[1], true);
+        }
+      });
+      
+      // Verificar que cada dirección aún tiene esta dirección como delegado para esta propuesta
+      const potentialDelegators = Array.from(uniqueDelegators.keys());
+      for (let i = 0; i < potentialDelegators.length; i++) {
+        const potentialDelegator = potentialDelegators[i];
+        const currentDelegate = await this.daoContract!.delegatedVote(proposalId, potentialDelegator);
+        if (currentDelegate.toLowerCase() === delegate.toLowerCase()) {
+          delegators.push(potentialDelegator);
+        }
+      }
+      
+      return delegators;
+    } catch (error) {
+      console.error("Error obteniendo delegadores para propuesta:", error);
+      return [];
+    }
+  }
+  
+  // Verifica si un usuario ha votado ya en una propuesta
+  async hasVoted(proposalId: number, address: string): Promise<boolean> {
+    this.ensureConnected();
+    try {
+      return await this.daoContract!.hasVoted(proposalId, address);
+    } catch (error) {
+      // Si el contrato no tiene esta función, emulamos con el evento de voto
+      console.warn("Función hasVoted no encontrada, emulando con eventos");
+      const filter = this.daoContract!.filters.VoteCasted(proposalId, address);
+      const events = await this.daoContract!.queryFilter(filter);
+      return events.length > 0;
+    }
+  }
+  
+  // Obtiene el poder de voto de un usuario (considerando delegaciones)
+  async getVotingPower(address: string): Promise<ethers.BigNumberish> {
+    this.ensureConnected();
+    try {
+      return await this.daoContract!.calculateVotingPower(address);
+    } catch (error) {
+      console.error("Error obteniendo poder de voto:", error);
+      // Si falla, devolvemos el balance de tokens en stake como aproximación
+      const stakeInfo = await this.daoContract!.voteStakes(address);
+      return stakeInfo ? stakeInfo.amount : 0;
+    }
+  }
+  
+  // Revoca la delegación general
+  async revokeDelegate(): Promise<ethers.TransactionResponse> {
+    this.ensureConnected(true);
+    // Delegar a dirección cero (o a sí mismo) para revocar
+    return await this.daoContract!.delegate('0x0000000000000000000000000000000000000000');
+  }
+  
+  // Revoca la delegación para una propuesta específica
+  async revokeDelegateForProposal(proposalId: number): Promise<ethers.TransactionResponse> {
+    this.ensureConnected(true);
+    // Delegar a dirección cero para revocar
+    return await this.daoContract!.delegateVoteForProposal(proposalId, '0x0000000000000000000000000000000000000000');
+  }
+  
+  // --- Funciones relacionadas con parámetros ---
+
+  // Obtiene el valor de un parámetro específico
+  async getParameterValue(paramName: string): Promise<string> {
+    this.ensureConnected();
+    const value = await this.daoContract!.getParameter(paramName);
+    return value;
+  }
+  
+  // Establece el valor de un parámetro específico (solo para el propietario del contrato)
+  async setParameterValue(paramName: string, paramValue: string): Promise<ethers.TransactionResponse> {
+    this.ensureConnected(true); // Requiere wallet
+    return await this.daoContract!.setParameter(paramName, paramValue);
   }
 
   // --- Funciones para obtener parámetros del DAO ---

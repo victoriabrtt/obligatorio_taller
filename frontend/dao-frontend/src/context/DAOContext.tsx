@@ -14,6 +14,7 @@ interface DAOContextType {
   proposals: any[];
   refreshData: () => Promise<void>;
   connectWallet: () => Promise<boolean>; // Función para conectar la cartera
+  account: string | null; // Alias para address, para mantener compatibilidad con componentes
 }
 
 // Crear el contexto
@@ -281,6 +282,7 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
   const contextValue: DAOContextType = {
     connected,
     address,
+    account: address, // Proporcionar account como alias de address
     error,
     daoService,
     tokenBalance,
