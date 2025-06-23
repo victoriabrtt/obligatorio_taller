@@ -12,6 +12,7 @@ interface DAOContextType {
   voteStake: { amount: string; timestamp: number };
   proposalStake: { amount: string; timestamp: number };
   proposals: any[];
+  isPaused: boolean; // Estado de pausa de la DAO
   refreshData: () => Promise<void>;
   connectWallet: () => Promise<boolean>; // Función para conectar la cartera
   account: string | null; // Alias para address, para mantener compatibilidad con componentes
@@ -49,6 +50,7 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
     timestamp: 0,
   });
   const [proposals, setProposals] = useState<any[]>([]);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   
   // Crear instancia del servicio DAO
   const [daoService] = useState<DAOService>(new DAOService());
@@ -254,6 +256,11 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
         await daoService.initializeReadOnly(provider);
       }
       
+      // Comprobar si la DAO está pausada
+      const daoIsPaused = await daoService.getIsPaused();
+      console.log("Estado de pausa de la DAO:", daoIsPaused ? "PAUSADA" : "ACTIVA");
+      setIsPaused(daoIsPaused);
+      
       // Obtener balance de tokens
       const balance = await daoService.getTokenBalance();
       console.log("Balance de tokens:", balance);
@@ -289,6 +296,7 @@ export const DAOProvider: React.FC<DAOProviderProps> = ({ children }) => {
     voteStake,
     proposalStake,
     proposals,
+    isPaused, // Estado de pausa de la DAO
     refreshData,
     connectWallet,
   };

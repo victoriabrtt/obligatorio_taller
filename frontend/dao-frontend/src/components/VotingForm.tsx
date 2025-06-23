@@ -29,7 +29,7 @@ interface VotingFormProps {
 }
 
 const VotingForm: React.FC<VotingFormProps> = ({ proposalId, proposal, onSuccess }) => {
-  const { daoService, account } = useDAO();
+  const { daoService, account, isPaused } = useDAO();
   const [votedStatus, setVotedStatus] = useState<boolean | null>(null);
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const [isDelegate, setIsDelegate] = useState<boolean>(false);
@@ -112,7 +112,14 @@ const VotingForm: React.FC<VotingFormProps> = ({ proposalId, proposal, onSuccess
     } catch (err: any) {
       console.error("Error al votar:", err);
       setLoadingVote('error');
-      setErrorMessage(err.message || 'Error al emitir el voto');
+      
+      let errorMsg = err.message || 'Error al emitir el voto';
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMsg = "No se puede votar porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setErrorMessage(errorMsg);
     }
   };
   
@@ -187,7 +194,14 @@ const VotingForm: React.FC<VotingFormProps> = ({ proposalId, proposal, onSuccess
         <Divider />
         
         <VStack spacing={3}>
-          {hasVoted ? (
+          {isPaused ? (
+            <Box p={3} borderRadius="md" bg="red.50" width="100%" textAlign="center">
+              <HStack justify="center">
+                <Icon as={InfoIcon} color="red.500" />
+                <Text>Votación no disponible: la DAO está pausada</Text>
+              </HStack>
+            </Box>
+          ) : hasVoted ? (
             <Box p={3} borderRadius="md" bg="gray.50" width="100%" textAlign="center">
               <HStack justify="center">
                 <CheckIcon color="green.500" />
@@ -227,8 +241,9 @@ const VotingForm: React.FC<VotingFormProps> = ({ proposalId, proposal, onSuccess
                     colorScheme="green" 
                     variant="solid" 
                     onClick={() => handleVote(true)}
-                    isDisabled={loadingVote === 'pending'} 
+                    isDisabled={loadingVote === 'pending' || isPaused} 
                     width="50%"
+                    title={isPaused ? "No puedes votar cuando la DAO está pausada" : ""}
                   >
                     Votar a Favor
                   </Button>
@@ -236,8 +251,9 @@ const VotingForm: React.FC<VotingFormProps> = ({ proposalId, proposal, onSuccess
                     colorScheme="red" 
                     variant="solid" 
                     onClick={() => handleVote(false)}
-                    isDisabled={loadingVote === 'pending'} 
+                    isDisabled={loadingVote === 'pending' || isPaused} 
                     width="50%"
+                    title={isPaused ? "No puedes votar cuando la DAO está pausada" : ""}
                   >
                     Votar en Contra
                   </Button>

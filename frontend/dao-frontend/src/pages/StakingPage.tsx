@@ -4,7 +4,7 @@ import {
   Box, Button, Flex, Heading, Stack, Text, Input, Spacer,
   Tabs, TabList, Tab, TabPanels, TabPanel,
   Card, CardHeader, CardBody, CardFooter, 
-  Alert, AlertIcon, Divider, VStack
+  Alert, AlertIcon, Divider, VStack, Badge
 } from '@chakra-ui/react';
 import { useDAO } from '../context/DAOContext';
 
@@ -13,7 +13,7 @@ import { useDAO } from '../context/DAOContext';
  * Simplified for Conjunto A requirements
  */
 const StakingPage: React.FC = () => {
-  const { daoService, tokenBalance, voteStake, proposalStake, refreshData } = useDAO();
+  const { daoService, tokenBalance, voteStake, proposalStake, refreshData, isPaused } = useDAO();
   
   // State for staking
   const [voteStakeAmount, setVoteStakeAmount] = useState('');
@@ -87,7 +87,13 @@ const StakingPage: React.FC = () => {
       await refreshData();
       setApproveAmount('');
     } catch (err: any) {
-      setError(`Error al aprobar tokens: ${err.message}`);
+      let errorMessage = `Error al aprobar tokens: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede aprobar tokens porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -103,7 +109,13 @@ const StakingPage: React.FC = () => {
       await refreshData();
       setBuyAmount('');
     } catch (err: any) {
-      setError(`Error al comprar tokens: ${err.message}`);
+      let errorMessage = `Error al comprar tokens: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede comprar tokens porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -119,7 +131,13 @@ const StakingPage: React.FC = () => {
       await refreshData();
       setVoteStakeAmount('');
     } catch (err: any) {
-      setError(`Error al hacer stake para votar: ${err.message}`);
+      let errorMessage = `Error al hacer stake para votar: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede realizar esta acción porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -135,7 +153,13 @@ const StakingPage: React.FC = () => {
       await refreshData();
       setProposalStakeAmount('');
     } catch (err: any) {
-      setError(`Error al hacer stake para propuestas: ${err.message}`);
+      let errorMessage = `Error al hacer stake para propuestas: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede realizar esta acción porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -150,7 +174,13 @@ const StakingPage: React.FC = () => {
       
       await refreshData();
     } catch (err: any) {
-      setError(`Error al retirar stake de votos: ${err.message}`);
+      let errorMessage = `Error al retirar stake de votos: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede realizar esta acción porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -165,7 +195,13 @@ const StakingPage: React.FC = () => {
       
       await refreshData();
     } catch (err: any) {
-      setError(`Error al retirar stake de propuestas: ${err.message}`);
+      let errorMessage = `Error al retirar stake de propuestas: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede realizar esta acción porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -173,7 +209,29 @@ const StakingPage: React.FC = () => {
 
   return (
     <Box p={6}>
-      <Heading size="lg" mb={6}>Gestión de Tokens y Staking</Heading>
+      <Flex mb={6} alignItems="center" justifyContent="space-between">
+        <Heading size="lg">Gestión de Tokens y Staking</Heading>
+        <Badge 
+          colorScheme={isPaused ? "red" : "green"} 
+          fontSize="lg" 
+          px={3} 
+          py={1}
+          borderRadius="md"
+        >
+          DAO {isPaused ? "PAUSADA" : "ACTIVA"}
+        </Badge>
+      </Flex>
+      
+      {/* Alert if DAO is paused */}
+      {isPaused && (
+        <Alert status="error" mb={6} borderRadius="md">
+          <AlertIcon />
+          <Box>
+            <Text fontWeight="bold">La DAO está en modo pausa (circuit breaker)</Text>
+            <Text fontSize="sm">Las acciones que modifican el estado están deshabilitadas hasta que se active la DAO desde el contrato multisig de emergencia.</Text>
+          </Box>
+        </Alert>
+      )}
       
       {/* Current token balance display */}
       <Card mb={6}>
@@ -233,10 +291,11 @@ const StakingPage: React.FC = () => {
                     <Button 
                       colorScheme="green" 
                       onClick={handleBuyTokens}
-                      isDisabled={!buyAmount || isProcessing || Number(buyAmount) <= 0}
+                      isDisabled={!buyAmount || isProcessing || Number(buyAmount) <= 0 || isPaused}
                       isLoading={isProcessing}
                       loadingText="Comprando..."
                       width="full"
+                      title={isPaused ? "Esta acción está deshabilitada porque la DAO está pausada" : ""}
                     >
                       Comprar Tokens
                     </Button>
@@ -260,10 +319,11 @@ const StakingPage: React.FC = () => {
                     <Button 
                       colorScheme="blue" 
                       onClick={handleApprove}
-                      isDisabled={!approveAmount || isProcessing}
+                      isDisabled={!approveAmount || isProcessing || isPaused}
                       isLoading={isProcessing}
                       loadingText="Aprobando..."
                       width="full"
+                      title={isPaused ? "Esta acción está deshabilitada porque la DAO está pausada" : ""}
                     >
                       Aprobar Tokens
                     </Button>
@@ -297,21 +357,23 @@ const StakingPage: React.FC = () => {
                     <Button 
                       colorScheme="green" 
                       onClick={handleStakeForVote}
-                      isDisabled={!voteStakeAmount || isProcessing || Number(voteStake.amount) > 0}
+                      isDisabled={!voteStakeAmount || isProcessing || Number(voteStake.amount) > 0 || isPaused}
                       isLoading={isProcessing}
                       loadingText="Depositando..."
                       width="full"
                       mb={3}
+                      title={isPaused ? "Esta acción está deshabilitada porque la DAO está pausada" : ""}
                     >
                       Depositar para Votar
                     </Button>
                     <Button 
                       colorScheme="red" 
                       onClick={handleUnstakeVote}
-                      isDisabled={isProcessing || Number(voteStake.amount) <= 0}
+                      isDisabled={isProcessing || Number(voteStake.amount) <= 0 || isPaused}
                       isLoading={isProcessing}
                       loadingText="Retirando..."
                       width="full"
+                      title={isPaused ? "Esta acción está deshabilitada porque la DAO está pausada" : ""}
                     >
                       Retirar Stake de Votos
                     </Button>
@@ -345,21 +407,23 @@ const StakingPage: React.FC = () => {
                     <Button 
                       colorScheme="green" 
                       onClick={handleStakeForProposal}
-                      isDisabled={!proposalStakeAmount || isProcessing || Number(proposalStake.amount) > 0}
+                      isDisabled={!proposalStakeAmount || isProcessing || Number(proposalStake.amount) > 0 || isPaused}
                       isLoading={isProcessing}
                       loadingText="Depositando..."
                       width="full"
                       mb={3}
+                      title={isPaused ? "Esta acción está deshabilitada porque la DAO está pausada" : ""}
                     >
                       Depositar para Propuestas
                     </Button>
                     <Button 
                       colorScheme="red" 
                       onClick={handleUnstakeProposal}
-                      isDisabled={isProcessing || Number(proposalStake.amount) <= 0}
+                      isDisabled={isProcessing || Number(proposalStake.amount) <= 0 || isPaused}
                       isLoading={isProcessing}
                       loadingText="Retirando..."
                       width="full"
+                      title={isPaused ? "Esta acción está deshabilitada porque la DAO está pausada" : ""}
                     >
                       Retirar Stake de Propuestas
                     </Button>

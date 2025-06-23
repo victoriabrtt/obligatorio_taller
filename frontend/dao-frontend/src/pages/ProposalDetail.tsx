@@ -28,7 +28,7 @@ const ProposalDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  const { proposals, daoService, voteStake, refreshData } = useDAO();
+  const { proposals, daoService, voteStake, refreshData, isPaused } = useDAO();
 
   const [proposal, setProposal] = useState<any>(null);
   const [delegateAddress, setDelegateAddress] = useState('');
@@ -110,6 +110,18 @@ const ProposalDetail: React.FC = () => {
   const handleExecuteProposal = async () => {
     if (!proposal) return;
     
+    // Verificar si la DAO está pausada
+    if (isPaused) {
+      toast({
+        title: 'DAO pausada',
+        description: 'No se pueden ejecutar propuestas mientras la DAO esté pausada',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    
     try {
       setExecutionLoading('pending');
       setError(null);
@@ -132,7 +144,14 @@ const ProposalDetail: React.FC = () => {
     } catch (err: any) {
       console.error("Error al ejecutar propuesta:", err);
       setExecutionLoading('error');
-      setError(`Error al ejecutar: ${err.message}`);
+      
+      let errorMessage = `Error al ejecutar: ${err.message}`;
+      
+      if (err.message.includes("DAO is paused") || err.message.includes("circuit breaker")) {
+        errorMessage = "No se puede ejecutar la propuesta porque la DAO está pausada (circuit breaker activado)";
+      }
+      
+      setError(errorMessage);
     }
   };
   
@@ -150,21 +169,44 @@ const ProposalDetail: React.FC = () => {
   
   // Determinar si el usuario puede votar
   const canVote = Number(voteStake.amount) > 0 && 
-                  proposal.status === 'ACTIVE';
+                  proposal.status === 'ACTIVE' &&
+                  !isPaused;
   
   // Determinar si la propuesta se puede ejecutar
   const canExecute = proposal.status === 'APPROVED' && 
-                    !proposal.executed;
+                    !proposal.executed &&
+                    !isPaused;
 
   return (
     <Box p={6} maxW="1200px" mx="auto">
-      <Button 
-        onClick={() => navigate('/proposals')} 
-        mb={6} 
-        leftIcon={<span>←</span>}
-      >
-        Volver a propuestas
-      </Button>
+      <Flex justify="space-between" align="center" mb={6}>
+        <Button 
+          onClick={() => navigate('/proposals')} 
+          leftIcon={<span>←</span>}
+        >
+          Volver a propuestas
+        </Button>
+
+        <Badge 
+          colorScheme={isPaused ? "red" : "green"} 
+          fontSize="md" 
+          px={3} 
+          py={1}
+          borderRadius="md"
+        >
+          DAO {isPaused ? "PAUSADA" : "ACTIVA"}
+        </Badge>
+      </Flex>
+
+      {isPaused && (
+        <Alert status="error" mb={6} borderRadius="md">
+          <AlertIcon />
+          <Box>
+            <Text fontWeight="bold">La DAO está en modo pausa (circuit breaker)</Text>
+            <Text fontSize="sm">No se pueden realizar votaciones o ejecutar propuestas hasta que se active la DAO desde el contrato multisig de emergencia.</Text>
+          </Box>
+        </Alert>
+      )}
       
       <Card variant="outline" mb={6} boxShadow="md">
         <CardHeader bg="gray.50" p={6}>

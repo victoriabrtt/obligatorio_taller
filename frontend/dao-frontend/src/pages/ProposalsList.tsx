@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, Heading, Stack, Text, Badge } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Stack, Text, Badge, Alert, AlertIcon } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useDAO } from '../context/DAOContext';
 
@@ -16,7 +16,7 @@ enum ProposalType {
 
 const ProposalsList: React.FC = () => {
   const navigate = useNavigate();
-  const { proposals, refreshData } = useDAO();
+  const { proposals, refreshData, isPaused } = useDAO();
   const [filterStatus, setFilterStatus] = useState<ProposalStatus | 'ALL'>('ALL');
   
   // Filtrar propuestas por estado
@@ -55,11 +55,32 @@ const ProposalsList: React.FC = () => {
   return (
     <Box p={6}>
       <Flex justify="space-between" align="center" mb={6}>
-        <Heading size="lg">Propuestas</Heading>
+        <Flex alignItems="center" gap={3}>
+          <Heading size="lg">Propuestas</Heading>
+          <Badge 
+            colorScheme={isPaused ? "red" : "green"} 
+            fontSize="md" 
+            px={3} 
+            py={1}
+            borderRadius="md"
+          >
+            DAO {isPaused ? "PAUSADA" : "ACTIVA"}
+          </Badge>
+        </Flex>
         <Button onClick={refreshData} colorScheme="blue" size="sm">
           Refrescar
         </Button>
       </Flex>
+
+      {isPaused && (
+        <Alert status="error" mb={6} borderRadius="md">
+          <AlertIcon />
+          <Box>
+            <Text fontWeight="bold">La DAO está en modo pausa (circuit breaker)</Text>
+            <Text fontSize="sm">No se pueden crear o ejecutar propuestas hasta que se active la DAO desde el contrato multisig de emergencia.</Text>
+          </Box>
+        </Alert>
+      )}
 
       <Flex direction="row" gap={4} mb={6}>
         <Button 

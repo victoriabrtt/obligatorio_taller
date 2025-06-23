@@ -27,6 +27,11 @@ Este documento sirve como guía para navegar por toda la documentación del proy
    - Instrucciones paso a paso para ejecutar el proyecto
    - Configuración del entorno de desarrollo
    - Comandos de inicialización y ejecución
+   
+5. [SCRIPTS_GUIDE.md](./SCRIPTS_GUIDE.md)
+   - Documentación completa de los scripts organizados
+   - Uso del script auxiliar run-script.sh
+   - Flujos de trabajo comunes con los scripts
 
 5. [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
    - Proceso de despliegue de contratos
