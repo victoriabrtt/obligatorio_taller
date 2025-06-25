@@ -72,9 +72,9 @@ if [[ "$NETWORK" == "localhost" ]]; then
     sleep 5
 fi
 
-# 3. Deploy contracts
-echo -e "${GREEN}Deploying contracts to ${NETWORK}...${NC}"
-npx hardhat run scripts/deploy_dao.js --network $NETWORK
+# 3. Deploy contracts and update frontend
+echo -e "${GREEN}Deploying contracts to ${NETWORK} and updating frontend addresses...${NC}"
+npx hardhat run scripts/deploy_with_frontend_update.js --network $NETWORK
 
 # 4. Run tests if local
 if [[ "$NETWORK" == "localhost" ]]; then

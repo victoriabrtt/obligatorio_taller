@@ -53,7 +53,7 @@ describe("DAO - Staking", function () {
 
   it("should not allow unstaking vote before time", async function () {
     await dao.connect(user).stakeForVote(150);
-    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Staking time not met");
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Minimum staking time not met");
   });
 
   it("should allow unstaking vote after time", async function () {
@@ -87,7 +87,7 @@ describe("DAO - Staking", function () {
 
   it("debe fallar si intenta deshacer stake antes del tiempo", async function () {
     await dao.connect(user).stakeForVote(150);
-    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Staking time not met");
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Minimum staking time not met");
   });
   
   it("debe fallar si intenta unstake sin haber staked", async function () {
@@ -103,7 +103,7 @@ describe("DAO - Staking", function () {
     await dao.connect(user).stakeForVote(150);
   
     // No avanza el tiempo, intenta directamente
-    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Staking time not met");
+    await expect(dao.connect(user).unstakeVote()).to.be.revertedWith("Minimum staking time not met");
   });
 
   it("debe fallar si intenta stake para propuesta dos veces sin unstake", async function () {

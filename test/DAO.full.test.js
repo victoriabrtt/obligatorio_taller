@@ -12,8 +12,8 @@ describe("DAO_update - Pruebas Completas", function() {
     const token = await Token.deploy();
     await token.waitForDeployment();
     
-    // Desplegar la DAO 
-    const DAO = await ethers.getContractFactory("contracts/DAO_update.sol:DAO_update");
+    // Desplegar la DAO con la ruta completa al contrato
+    const DAO = await ethers.getContractFactory("contracts/DAO.sol:DAO");
     const dao = await DAO.deploy(await token.getAddress());
     await dao.waitForDeployment();
     

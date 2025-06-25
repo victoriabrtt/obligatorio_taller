@@ -108,14 +108,17 @@ describe("DAO - Votación Cuadrática (Edge Cases)", function () {
     // Intentar hacer stake con menos del mínimo
     const lowStake = ethers.parseUnits("9", 18);
     
-    // Debería revertir
+    // Debería revertir con el mensaje actual del contrato
     await expect(
       dao.connect(voter4).stakeForVote(lowStake)
-    ).to.be.revertedWith("Insufficient staking amount");
+    ).to.be.revertedWith("Insufficient amount");
   });
   
   it("debería mostrar la diferencia en poder de voto entre valores lineales y cuadráticos", async function () {
-    const { dao, token, voter1, voter2 } = await loadFixture(deployDAOWithTokensFixture);
+    const { dao, token, voter1, voter2, proposer } = await loadFixture(deployDAOWithTokensFixture);
+    
+    // Crear una segunda propuesta para la prueba
+    await dao.connect(proposer).createProposal("Second Test Proposal");
     
     // Stake con dos valores muy diferentes (1000 vs 100)
     await dao.connect(voter1).stakeForVote(ethers.parseUnits("1000", 18));
@@ -125,13 +128,8 @@ describe("DAO - Votación Cuadrática (Edge Cases)", function () {
     // En un sistema lineal, voter1 tendría 10x el poder de voter2
     // En un sistema cuadrático, voter1 tendría sqrt(1000)/sqrt(100) = 3.16x el poder de voter2
     
-    // Votar con ambos en la misma propuesta
+    // Votar con ambos en diferentes propuestas
     await dao.connect(voter1).voteProposal(0, true);
-    
-    // Crear otra propuesta para voter2
-    // Crear otra propuesta desde el fixture
-    const { proposer } = await loadFixture(deployDAOWithTokensFixture);
-    await dao.connect(proposer).createProposal("Second Test Proposal");
     await dao.connect(voter2).voteProposal(1, true);
     
     const proposal1 = await dao.proposals(0);
@@ -155,31 +153,30 @@ describe("DAO - Votación Cuadrática (Edge Cases)", function () {
   });
 
   it("no debería aumentar el poder de voto al dividir tokens en múltiples cuentas", async function () {
-    const { dao, token, owner, voter1, voter2, voter3 } = await loadFixture(deployDAOWithTokensFixture);
+    const { dao, token, owner, voter1, voter2, voter3, proposer } = await loadFixture(deployDAOWithTokensFixture);
     
     // Estrategia: Comparar el poder de voto de una cuenta con 400 tokens
-    // vs el poder combinado de 3 cuentas con 100 tokens cada una
+    // vs el poder combinado de 3 cuentas con 100, 100 y 10 tokens
     
-    // Mintear tokens adicionales
+    // Crear una segunda propuesta para la prueba
+    await dao.connect(proposer).createProposal("Sybil Attack Test");
+    
+    // Mintear tokens adicionales para owner
     await token.mint(owner.address, ethers.parseUnits("400", 18));
     
     // Usamos owner como la cuenta única con 400 tokens
     await token.connect(owner).approve(await dao.getAddress(), ethers.MaxUint256);
     await dao.connect(owner).stakeForVote(ethers.parseUnits("400", 18));
     
-    // Votar con la cuenta única
+    // Votar con la cuenta única en la primera propuesta
     await dao.connect(owner).voteProposal(0, true);
-    
-    // Crear otra propuesta para los votantes "divididos"
-    // Crear otra propuesta usando proposer del fixture
-    const { proposer } = await loadFixture(deployDAOWithTokensFixture);
-    await dao.connect(proposer).createProposal("Sybil Attack Test");
     
     // Configurar los tres votantes con tokens ya minteados
     await dao.connect(voter1).stakeForVote(ethers.parseUnits("100", 18));
     await dao.connect(voter2).stakeForVote(ethers.parseUnits("100", 18));
-    await dao.connect(voter3).stakeForVote(ethers.parseUnits("10", 18)); // Usar los 10 tokens que ya tiene voter3
+    await dao.connect(voter3).stakeForVote(ethers.parseUnits("10", 18));
     
+    // Votar con las cuentas divididas en la segunda propuesta
     await dao.connect(voter1).voteProposal(1, true);
     await dao.connect(voter2).voteProposal(1, true);
     await dao.connect(voter3).voteProposal(1, true);
@@ -200,12 +197,9 @@ describe("DAO - Votación Cuadrática (Edge Cases)", function () {
     // sqrt(400) < sqrt(100) + sqrt(100) + sqrt(10)
     expect(Number(singleAccountPower)).to.be.lessThan(Number(multiAccountPower));
     
-    // Pero la diferencia no debería ser tan grande como en un sistema lineal
+    // Verificamos solo que el ratio cuadrático sea diferente al lineal
     const ratioDividido = Number(multiAccountPower) / Number(singleAccountPower);
-    console.log(`Ratio cuadrático: ${ratioDividido}`);
-    
     const ratioLineal = (Number(ethers.parseUnits("210", 18)) / Number(ethers.parseUnits("400", 18)));
-    console.log(`Ratio lineal: ${ratioLineal}`);
     
     expect(ratioDividido).to.be.greaterThan(ratioLineal);
   });

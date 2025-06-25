@@ -5,19 +5,26 @@ Este documento proporciona instrucciones detalladas para ejecutar todos los comp
 ## Entorno de Ejecución
 
 El sistema ha sido probado en el siguiente entorno:
-- Ubuntu 24.04 (también funciona en macOS y Windows)
+- Ubuntu 24.04 / macOS / Windows
 - Node.js v18+
 - Hardhat para simulación de red Ethereum
 - Visual Studio Code
+- Metamask u otra wallet compatible con Web3
 
 ## Instalación de Prerequisites
 
 ### 1. Node.js y NPM
 
 ```bash
-# Instalar Node.js v18
+# Ubuntu/Debian
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
+
+# macOS (usando Homebrew)
+brew install node@18
+
+# Windows
+# Descargar el instalador desde https://nodejs.org/
 
 # Verificar instalación
 node --version  # Debe mostrar v18.x.x
@@ -105,7 +112,7 @@ Si necesita actualizar manualmente las direcciones:
 
 ```bash
 # Actualizar las direcciones en el frontend
-npx hardhat run scripts/utils/update-frontend.js --network localhost
+npx hardhat run scripts/update_frontend_addresses.js --network localhost
 ```
 
 ### 2. Iniciar Servidor Frontend
@@ -149,11 +156,29 @@ El frontend estará disponible en `http://localhost:3000`.
 
 3. **Error: No se ven los contratos desplegados**
    - Verifique las direcciones en `frontend/dao-frontend/src/contracts/contracts.ts`
-   - Ejecute `npx hardhat run scripts/verification/diagnose_environment.js --network localhost` para diagnosticar
+   - Ejecute `npx hardhat run scripts/update_frontend_addresses.js --network localhost` para actualizar las direcciones
+   - Si persiste el problema, reutilice el comando de despliegue completo: `npx hardhat run scripts/deploy_with_frontend_update.js --network localhost`
 
 4. **Error: Gas insuficiente**
    - Asegúrese de tener suficiente ETH en su cuenta
    - Puede enviar ETH usando `npx hardhat run scripts/tools/send_lot_eth.js --network localhost`
+
+5. **Errores de dependencias en el frontend**
+   - Use siempre `npm install --legacy-peer-deps` para instalar las dependencias del frontend
+   - Si persisten problemas con React o Framer Motion, pruebe: `npm update react react-dom framer-motion --legacy-peer-deps`
+
+## Mejoras del Frontend
+
+Para ver la lista completa de mejoras planificadas y sugeridas para el frontend, consulte:
+```bash
+cat FRONTEND-IMPROVEMENTS.md
+```
+
+Este documento incluye:
+- Correcciones para la integración de contratos
+- Mejoras en la interfaz de usuario
+- Optimizaciones de rendimiento
+- Nuevas características sugeridas
 
 ## Despliegue en Testnet
 

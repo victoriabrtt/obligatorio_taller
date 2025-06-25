@@ -12,7 +12,7 @@ import "./MultisigFactory.sol";
  * @dev Esta versión incluye mejoras en los mecanismos de delegación, votación cuadrática y validación de tiempos
  * @custom:security-contact admin@dao-obligatorio.com
  */
-contract DAO {
+contract DAO_update {
     /// @notice Token de gobernanza utilizado para staking y votación
     MyToken public token;
     

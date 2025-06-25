@@ -54,6 +54,23 @@ La documentación técnica se complementa con los comentarios dentro del código
 - `/contracts/Multisig.sol`: Contrato para operaciones de firma múltiple
 - `/scripts/README.md`: Documentación de los scripts organizados en subcarpetas
 
+## Documentación de Mejoras y Actualizaciones
+
+8. [IMPROVEMENTS.md](../docs/IMPROVEMENTS.md)
+   - Mejoras generales propuestas para el sistema
+   - Recomendaciones para futuras iteraciones
+
+9. [UPGRADE_PLAN.md](../UPGRADE_PLAN.md)
+   - Plan para actualizar contratos usando proxy
+   - Proceso de migración de datos
+   - Consideraciones para actualizaciones seguras
+
+10. [FRONTEND_IMPROVEMENTS.md](../FRONTEND-IMPROVEMENTS.md)
+    - Mejoras específicas para la interfaz de usuario
+    - Recomendaciones para mejor experiencia de usuario
+    - Optimizaciones y nuevas características propuestas
+    - Procedimiento para actualizar direcciones de contratos
+
 ## Para la Defensa del Obligatorio
 
 Para la defensa del proyecto, se recomienda familiarizarse especialmente con:
@@ -61,3 +78,4 @@ Para la defensa del proyecto, se recomienda familiarizarse especialmente con:
 1. `CONJUNTO_A_DOCUMENTATION.md`: Para explicar las funcionalidades específicas requeridas
 2. `TECHNICAL_DOCUMENTATION.md`: Para demostrar conocimiento técnico del sistema
 3. `README.md`: Para una visión general del proyecto
+4. `FRONTEND-IMPROVEMENTS.md`: Para explicar el proceso de integración frontend-contratos
