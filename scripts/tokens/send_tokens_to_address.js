@@ -4,13 +4,13 @@ const hre = require("hardhat");
 async function main() {
   // Dirección destino específica
   const toAddress = "0x86BF80dC22E5ED99596C0443429a59670f47ea64";
-  // Cantidad de tokens a enviar - por defecto 100 tokens
-  const amount = "100";
+  // Cantidad de tokens a enviar - por defecto 1000 tokens
+  const amount = "1000";
   
   console.log(`Enviando ${amount} tokens a la dirección: ${toAddress}`);
   
   // Dirección del token (usar la dirección actual del token desplegado)
-  const tokenAddress = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0";
+  const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   
   // Obtener contrato token
   const token = await hre.ethers.getContractAt("MyToken", tokenAddress);
