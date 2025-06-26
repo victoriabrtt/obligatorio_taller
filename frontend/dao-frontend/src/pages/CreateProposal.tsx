@@ -19,7 +19,6 @@ import { useNavigate } from 'react-router-dom';
 
 enum ProposalType {
   Simple = 0,
-  Transaction = 1,
   ParameterChange = 2,
   TokenMint = 3
 }
@@ -34,8 +33,6 @@ const CreateProposal: React.FC = () => {
   const [proposalType, setProposalType] = useState<number>(ProposalType.Simple);
   
   // Campos adicionales según el tipo de propuesta
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
   const [paramName, setParamName] = useState('');
   const [paramValue, setParamValue] = useState('');
   const [mintAmount, setMintAmount] = useState('');
@@ -48,7 +45,6 @@ const CreateProposal: React.FC = () => {
   const canPropose = proposalStake.amount !== '0';
 
   // Campos adicionales disponibles según el tipo de propuesta
-  const showRecipientAndAmount = proposalType === ProposalType.Transaction;
   const showParamFields = proposalType === ProposalType.ParameterChange;
   const showMintFields = proposalType === ProposalType.TokenMint;
   
@@ -78,14 +74,6 @@ const CreateProposal: React.FC = () => {
       switch (parseInt(proposalType.toString())) {
         case ProposalType.Simple:
           tx = await daoService.createProposal(title, description);
-          break;
-        case ProposalType.Transaction:
-          if (!recipient || !amount) {
-            throw new Error('Destinatario y cantidad son obligatorios');
-          }
-          tx = await daoService.createTransactionProposal(
-            title, description, recipient, amount
-          );
           break;
         case ProposalType.ParameterChange:
           if (!paramName || !paramValue) {
@@ -155,7 +143,6 @@ const CreateProposal: React.FC = () => {
           onChange={e => setProposalType(Number(e.target.value))}
         >
           <option value={ProposalType.Simple}>Simple</option>
-          <option value={ProposalType.Transaction}>Transacción (ETH)</option>
           <option value={ProposalType.ParameterChange}>Cambio de parámetro</option>
           <option value={ProposalType.TokenMint}>Minteo de tokens</option>
         </Select>
@@ -180,33 +167,6 @@ const CreateProposal: React.FC = () => {
         />
       </FormControl>
       
-      {/* Campos adicionales para propuestas de transacción */}
-      {showRecipientAndAmount && (
-        <>
-          <Divider my={4} />
-          <Heading size="sm" mb={4}>Detalles de la transacción</Heading>
-          
-          <FormControl mb={4}>
-            <FormLabel>Dirección destino</FormLabel>
-            <Input 
-              value={recipient}
-              onChange={e => setRecipient(e.target.value)}
-              placeholder="0x..."
-            />
-          </FormControl>
-          
-          <FormControl mb={4}>
-            <FormLabel>Cantidad (ETH)</FormLabel>
-            <Input 
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="0.01"
-              type="number"
-              step="0.000001"
-            />
-          </FormControl>
-        </>
-      )}
       
       {/* Campos para cambio de parámetros */}
       {showParamFields && (
