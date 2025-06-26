@@ -47,7 +47,7 @@ describe("DAO - Propuestas", function () {
   it("debe fallar si no hizo stake de propuesta", async function () {
     await expect(
       dao.connect(user).createProposal("No hice stake pero quiero proponer")
-    ).to.be.revertedWith("Insufficient stake to propose");
+    ).to.be.revertedWith("Not enough stake to propose");
   });
 
   it("debería aplicar voto cuadrático correctamente", async function () {

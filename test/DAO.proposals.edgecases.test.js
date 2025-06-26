@@ -89,9 +89,9 @@ describe("DAO - Propuestas y Ejecución (Edge Cases)", function () {
     const { dao, proposer2 } = await loadFixture(deployDAOFixture);
     
     // Hacer staking por debajo del mínimo
-    // El contrato usa "Insufficient amount" para el error
+    // El contrato usa "Insufficient staking amount" para el error
     await expect(dao.connect(proposer2).stakeForProposal(ethers.parseUnits("40", 18)))
-      .to.be.revertedWith("Insufficient amount");
+      .to.be.revertedWith("Insufficient staking amount");
       
     // Si intentáramos hacer stake y luego proponer, el segundo paso fallaría
     // pero ya sabemos que el primero falla, así que es suficiente

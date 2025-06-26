@@ -111,7 +111,7 @@ describe("DAO - Votación Cuadrática (Edge Cases)", function () {
     // Debería revertir con el mensaje actual del contrato
     await expect(
       dao.connect(voter4).stakeForVote(lowStake)
-    ).to.be.revertedWith("Insufficient amount");
+    ).to.be.revertedWith("Insufficient staking amount");
   });
   
   it("debería mostrar la diferencia en poder de voto entre valores lineales y cuadráticos", async function () {
