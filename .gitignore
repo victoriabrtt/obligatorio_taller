@@ -1,0 +1,27 @@
+node_modules
+.env
+
+# Hardhat files
+/cache
+/artifacts
+
+# TypeChain files
+/typechain
+/typechain-types
+
+# solidity-coverage files
+/coverage
+/coverage.json
+
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
+
+# macOS
+.DS_Store
+EjemplosClase/.DS_Store
+
+# Legacy documentation files (migrated to docs/)
+/DAO-IMPROVEMENTS.md
+/UPGRADE-PLAN.md
+/FRONTEND-IMPROVEMENTS.md
+/FINAL-REPORT.md
