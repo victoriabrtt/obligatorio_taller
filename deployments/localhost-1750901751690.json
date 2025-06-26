@@ -1,0 +1,10 @@
+{
+  "network": "localhost",
+  "timestamp": "2025-06-26T01:35:51.690Z",
+  "addresses": {
+    "daoAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "tokenAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "ownerMultisigAddress": "0xAe367415f4BDe0aDEE3e59C35221d259f517413E",
+    "panicMultisigAddress": "0x4D17b728F3E78e62Ac86D585bE00738Eae7528C6"
+  }
+}

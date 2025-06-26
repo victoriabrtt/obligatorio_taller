@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { updateFrontendContracts } = require("./update-frontend");
+const { updateFrontendAddresses } = require("../update_frontend_addresses");
 
 async function main() {
   console.log("Starting deployment process...");
@@ -152,7 +152,7 @@ async function main() {
   
   // Update contract addresses in frontend
   try {
-    await updateFrontendContracts(contractAddresses);
+    await updateFrontendAddresses();
   } catch (error) {
     console.warn("Warning: Could not update frontend contract addresses:", error.message);
   }
