@@ -48,26 +48,6 @@ npm install -g ganache
 ganache --version
 ```
 
-### 3. Visual Studio Code
-
-Para instalar Visual Studio Code en Ubuntu 24.04:
-
-```bash
-# Añadir repositorio de Microsoft
-sudo apt-get install wget gpg
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
-sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
-rm -f packages.microsoft.gpg
-
-# Instalar VS Code
-sudo apt update
-sudo apt install code
-
-# Verificar la instalación
-code --version
-```
-
 ### 4. Extensión Metamask
 
 Instale la extensión Metamask en su navegador (Chrome, Firefox, etc.) desde la tienda de extensiones oficial.
@@ -294,7 +274,7 @@ Una vez conectado a Metamask, debe verificar todas estas funcionalidades:
    - Realice staking para votar (requiere aprobación de tokens)
    - Realice staking para propuestas (requiere aprobación de tokens)
    - Verifique que se muestre correctamente el stake actual
-   - Pruebe retirar tokens de staking (si ha pasado el tiempo mínimo)
+   - Pruebe retirar tokens de staking (si ha pasado el tiempo mínimo, tiempo minimo = 1 hora)
 
 5. **Creación de propuestas**:
    - Navegue a "Create Proposal"
@@ -413,29 +393,14 @@ Antes de dar por finalizada la evaluación, verifique estos aspectos críticos:
    - Validaciones para evitar ataques comunes
    - Multisig para operaciones críticas funcionando correctamente
 
-## Casos de Prueba para la Presentación/Defensa
-
-Para la presentación o defensa del proyecto, estos son algunos casos de prueba completos que puede demostrar:
-
-### 1. Flujo Completo de Usuario
-
-1. Conectar wallet (Metamask)
-2. Comprar tokens con ETH
-3. Hacer staking para votar
-4. Hacer staking para proponer
-5. Crear una propuesta
-6. Votar en propuestas existentes
-7. Esperar que expire el período de votación
-8. Ejecutar una propuesta aprobada
-
-### 2. Demostración de Seguridad
+### 1. Demostración de Seguridad
 
 1. Intentar ejecutar funciones de owner desde una cuenta no autorizada (debe fallar)
 2. Activar el modo pánico desde la multisig de pánico
 3. Intentar crear propuestas o votar durante el modo pánico (debe fallar)
 4. Desactivar el modo pánico y verificar que el sistema vuelve a la normalidad
 
-### 3. Verificación de Votación Cuadrática
+### 2. Verificación de Votación Cuadrática
 
 1. Realizar staking con diferentes cantidades de tokens en diferentes cuentas
 2. Votar desde estas cuentas
